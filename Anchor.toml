@@ -1,0 +1,18 @@
+[programs.localnet]
+doorman = "D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+#wallet = "~/.config/solana/id2.json"
+
+[scripts]
+test = "mocha -t 1000000 tests/"
+initialize = "node scripts/initialize.js"
+show-config = "node scripts/show_config.js"
+update-config = "node scripts/update_config.js"
+test-mint = "node scripts/test_mint.js"
+add-address = "node scripts/add_address.js"
