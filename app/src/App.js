@@ -1,15 +1,48 @@
-import logo from './logo.svg';
-import './App.css';
-import Wallet from './components/Wallet';
+import React, { FC, useMemo } from 'react';
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
+import {
+   getPhantomWallet,
+   getSolflareWallet,
+   getSolletExtensionWallet,
+   getSolletWallet,
+} from '@solana/wallet-adapter-wallets';
+import {
+   WalletModalProvider,
+   WalletDisconnectButton,
+   WalletMultiButton
+} from '@solana/wallet-adapter-react-ui';
+import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
+import anchor, {Provider} from "@project-serum/anchor";
 
-function App() {
+import { network, endpoint, preflightCommitment } from "./utils/config";
+import Main from "./components/Main";
+
+// Default styles that can be overridden by your app
+require('@solana/wallet-adapter-react-ui/styles.css');
+
+const App = () => {
+
+   // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking --
+   // Only the wallets you configure here will be compiled into your application
+   const wallets = useMemo(() => [
+      getPhantomWallet(),
+      getSolflareWallet(),
+      getSolletWallet({ network }),
+      getSolletExtensionWallet({ network }),
+   ], [network]);
+
+   // Wrap <Main /> within <WalletProvider /> so that we can access useWallet hook within Main
    return (
-      <div className="App">
-         <div>
-            <Wallet/>
-         </div>
-      </div>
+      <ConnectionProvider endpoint={endpoint}>
+         <WalletProvider wallets={wallets} autoConnect>
+            <WalletModalProvider>
+               <WalletMultiButton />
+               <WalletDisconnectButton />
+               <Main network={network}/>
+            </WalletModalProvider>
+         </WalletProvider>
+      </ConnectionProvider>
    );
-}
+};
 
 export default App;
