@@ -24,21 +24,22 @@ const { SystemProgram } = anchor.web3;
 export default function Main({ network }) {
    const wallet = useAnchorWallet();
 
-   const [balance, setBalance] = useState();
+   const [solBalance, setSolBalance] = useState();
+   const [mintTokenBalance, setMintTokenBalance] = useState(0);
    const [provider, setProvider] = useState();
    const [program, setProgram] = useState();
    const [payerTokenAccount, setPayerTokenAccount] = useState();
    const [hasTokenAccount, setHasTokenAccount] = useState(false);
-   const [canMint, setCanMint] = useState(false);
+   const [canPurchase, setCanPurchase] = useState(false);
+   const [isPurchasing, setIsPurchasing] = useState(false);
 
-   const [isMinting, setIsMinting] = useState(false); // true when user got to press MINT
 
    // init the wallets & connections and stuff
    useEffect(() => {
       (async () => {
          if (wallet) {
             const balance = await connection.getBalance(wallet.publicKey);
-            setBalance(balance / anchor.web3.LAMPORTS_PER_SOL);
+            setSolBalance(balance / anchor.web3.LAMPORTS_PER_SOL);
             const provider = new Provider(connection, wallet, preflightCommitment);
             const program = new Program(idl, programId, provider);
             const associatedTokenAccountAddress = await Token.getAssociatedTokenAddress(
@@ -47,19 +48,37 @@ export default function Main({ network }) {
                MINT,
                wallet.publicKey
             );
+            let mintToken = new Token(
+               provider.connection,
+               MINT,
+               TOKEN_PROGRAM_ID,
+               wallet.publicKey
+            );
+            // check if the payer's token account exists or not
             let associatedTokenAccount = await provider.connection.getAccountInfo(associatedTokenAccountAddress);
             if (associatedTokenAccount == null) {
                setHasTokenAccount(false);
             } else {
+               let mintToken = new Token(
+                  provider.connection,
+                  MINT,
+                  TOKEN_PROGRAM_ID,
+                  wallet.publicKey
+               );
+               let payerMintTokenAccountInfo = await mintToken.getAccountInfo(associatedTokenAccountAddress);
+               console.log("payer mint token account: ", payerMintTokenAccountInfo);
                setHasTokenAccount(true);
+               setMintTokenBalance(payerMintTokenAccountInfo.amount.toNumber());
+               setPayerTokenAccount(associatedTokenAccount);
             }
+
             anchor.setProvider(provider);
             setPayerTokenAccount(associatedTokenAccountAddress);
             setProgram(program);
             setProvider(provider);
 
             // todo: check whitelist for this wallet's address before setting canMint
-            setCanMint(true);
+            setCanPurchase(true);
          }
       })();
    }, [wallet]);
@@ -77,12 +96,12 @@ export default function Main({ network }) {
 
 
 
-   const onMint = async () => {
-      if (!canMint) {
+   const onPurchase = async () => {
+      if (!canPurchase) {
          return;
       }
       try {
-         setIsMinting(true);
+         setIsPurchasing(true);
          console.log("starting mint");
          if (provider && program) {
 
@@ -121,7 +140,7 @@ export default function Main({ network }) {
                },
                instructions : preInstructions ? preInstructions : undefined
             });
-            console.log("txid: ", tx);
+            console.log("purchase txid: ", tx);
             console.log("\n\n >> purchased mint token. deposited token in payer's token account: ", payerTokenAccount.toBase58());
          }
       } catch (error) {
@@ -149,26 +168,37 @@ export default function Main({ network }) {
       } finally {
          if (wallet) {
             const balance = await connection.getBalance(wallet.publicKey);
-            setBalance(balance / anchor.web3.LAMPORTS_PER_SOL);
+            setSolBalance(balance / anchor.web3.LAMPORTS_PER_SOL);
          }
-         setIsMinting(false);
+         setIsPurchasing(false);
          // refreshDoormanConfig();
       }
    };
 
+   const onMint = async () => {
+      console.log("minting...");
+   }
 
    return (
             <Container>
                <Grid container spacing={3}>
                   <Grid item xs={12}>
                      <div>
-                        Wallet balance: {balance}
+                        Wallet Balance: {solBalance} SOL
+                     </div>
+                  </Grid>
+                  <Grid item xs={12}>
+                     <div>
+                        Mint Tokens Available: {mintTokenBalance}
                      </div>
                   </Grid>
                   <Grid item xs={12}>
                      <ConfigInfo wallet={wallet} provider={provider} program={program}/>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid item xs={4}>
+                     <Button variant="contained" onClick={onPurchase}>Purchase Mint Token</Button>
+                  </Grid>
+                  <Grid item xs={4}>
                      <Button variant="contained" onClick={onMint}>Mint</Button>
                   </Grid>
                </Grid>
