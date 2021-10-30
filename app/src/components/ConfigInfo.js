@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Program, Provider, web3, BN } from "@project-serum/anchor";
-import { Box, Container, Grid } from "@material-ui/core";
 import { preflightCommitment, programId, idl, connection, CONFIG_ACCOUNT } from "../utils/config";
-import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
+import {Button, Card, CardActionArea, CardActions, CardContent, Grid, Paper} from "@mui/material";
+import { styled } from '@mui/material/styles';
+
 const anchor = require('@project-serum/anchor');
 
+const dateTimeFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'full', timeStyle: 'long'});
+
 export default function ConfigInfo({ wallet, provider, program }) {
+
 
    const [configInfo, setConfigInfo] = useState({
       cost: null
@@ -17,63 +21,39 @@ export default function ConfigInfo({ wallet, provider, program }) {
       (async () => {
          if (program) {
             let accountData = await program.account.config.fetch(CONFIG_ACCOUNT);
-            accountData.costInLamports = accountData.costInLamports.toString();
+            accountData.costInSol = accountData.costInLamports.toNumber() / anchor.web3.LAMPORTS_PER_SOL;
             accountData.authority = accountData.authority.toString();
             accountData.treasury = accountData.treasury.toString();
             accountData.mintTokenVault = accountData.mintTokenVault.toString();
-            accountData.goLiveDate = new Date(accountData.goLiveDate.toNumber() * 1000);
+            accountData.goLiveDate = dateTimeFormat.format(new Date(accountData.goLiveDate.toNumber() * 1000));
             console.log("\n >> config account data: ", accountData);
             setConfigInfo(accountData);
          }
       })();
-   }, [wallet]);
+   }, [program]);
 
-   // Initialize the program if this is the first time its launched
-   // async function initializeVoting() {
-   //    const provider = await getProvider();
-   //    const program = new Program(idl, programID, provider);
-   //    try {
-   //       await program.rpc.initialize(new BN(voteAccountBump), {
-   //          accounts: {
-   //             user: provider.wallet.publicKey,
-   //             voteAccount: voteAccount,
-   //             systemProgram: web3.SystemProgram.programId,
-   //          },
-   //       });
-   //       const account = await program.account.votingState.fetch(voteAccount);
-   //       setBalance({
-   //          crunchy: account.crunchy?.toNumber(),
-   //          smooth: account.smooth?.toNumber(),
-   //       });
-   //       enqueueSnackbar("Vote account initialized", { variant: "success" });
-   //    } catch (error) {
-   //       console.log("Transaction error: ", error);
-   //       console.log(error.toString());
-   //       enqueueSnackbar(`Error: ${error.toString()}`, { variant: "error" });
-   //    }
-   // }
 
 
    return (
-      <Box height="100%" display="flex" flexDirection="column">
-         <Box flex="1 0 auto">
-            <Container>
-               <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                     <div>
-                     </div>
+      <Card sx={{ maxWidth: 612}}>
+         <CardActionArea>
+            <CardContent>
+               <Grid container spacing={2}>
+                  <Grid item xs={3}>
+                     Doors Open:
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid item xs={9}>
+                     {configInfo.goLiveDate}
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid item xs={4}>
+                     Mint Token Price:
                   </Grid>
-                  <Grid item xs={6}>
-                  </Grid>
-                  <Grid item xs={12}>
+                  <Grid item xs={8}>
+                     {configInfo.costInSol} SOL
                   </Grid>
                </Grid>
-            </Container>
-         </Box>
-      </Box>
+            </CardContent>
+         </CardActionArea>
+      </Card>
    );
 }

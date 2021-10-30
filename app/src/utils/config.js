@@ -1,15 +1,11 @@
-import {PublicKey, clusterApiUrl, Connection} from "@solana/web3.js";
-import { getPhantomWallet } from "@solana/wallet-adapter-wallets";
-import * as anchor from "@project-serum/anchor";
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-
-// export const preflightCommitment = "processed";
-// export const programID = new PublicKey(idl.metadata.address);
-// export const wallets = [getPhantomWallet()];
-
 
 import doormanIdl from "./doorman.json";
 
+const spl = require("@solana/spl-token");
+const anchor = require('@project-serum/anchor');
+
+const utf8 = anchor.utils.bytes.utf8;
 const localnet = "http://127.0.0.1:8899/";
 // const devnet = clusterApiUrl("devnet");
 // const mainnet = clusterApiUrl("mainnet-beta");
@@ -26,11 +22,39 @@ export const connection = new anchor.web3.Connection(endpoint);
 
 
 export const idl = doormanIdl;
-export const programId = doormanIdl.metadata.address;
+export const programId = new anchor.web3.PublicKey(doormanIdl.metadata.address);
 
 export const CONFIG_ACCOUNT = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_CONFIG);
+export const MINT = new anchor.web3.PublicKey(process.env.REACT_APP_MINT);
+export const TREASURY = new anchor.web3.PublicKey(process.env.REACT_APP_TREASURY);
 
-// export const doormanConfig = new PublicKey(process.env.REACT_APP_DOORMAN_CONFIG);
+const DOORMAN_SEED = "doorman";
+console.log("programId: ", programId);
+
+(async () => {
+   const [mint_token_vault_authority_pda, _mint_token_vault_authority_bump] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from(anchor.utils.bytes.utf8.encode(DOORMAN_SEED))],
+      programId
+   );
+   console.log("mint token vault: ", mint_token_vault_authority_pda);
+})();
+
+export const getMintTokenVaultAddress = async () => {
+   const [mintTokenVault, mintTokenVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [utf8.encode(DOORMAN_SEED), MINT.toBuffer()],
+      programId
+   );
+   return mintTokenVault;
+}
+
+export async function getMintTokenVaultAuthorityPDA() {
+   const [mint_token_vault_authority_pda, _mint_token_vault_authority_bump] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from(anchor.utils.bytes.utf8.encode(DOORMAN_SEED))],
+      programId
+   );
+   return mint_token_vault_authority_pda;
+}
+
 
 /*
 async function getProvider() {

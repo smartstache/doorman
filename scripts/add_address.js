@@ -18,7 +18,7 @@ const {
 } = require("./config");
 
 // the address that should get added to the whitelist
-const whitelistAddress = new anchor.web3.PublicKey('ER8fVYtNV1jp7ANhub6CE8EgmunwKq73qPC9k12akzTt');
+const whitelistAddress = new anchor.web3.PublicKey('79nLYswTuZWvtM136CuBn8FjDL84FM1Mr3yEhGf6KpPB');
 
 async function addAddress() {
 
