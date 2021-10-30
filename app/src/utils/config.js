@@ -24,9 +24,17 @@ export const connection = new anchor.web3.Connection(endpoint);
 export const idl = doormanIdl;
 export const programId = new anchor.web3.PublicKey(doormanIdl.metadata.address);
 
-export const CONFIG_ACCOUNT = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_CONFIG);
+
+// the mint that's used across doorman + candymachine
 export const MINT = new anchor.web3.PublicKey(process.env.REACT_APP_MINT);
-export const TREASURY = new anchor.web3.PublicKey(process.env.REACT_APP_TREASURY);
+
+// candy machine config
+export const CANDYMACHINE_TREASURY = new anchor.web3.PublicKey(process.env.REACT_APP_CANDYMACHINE_TREASURY);
+export const CANDYMACHINE_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_CANDYMACHINE_CONFIG);
+
+// doorman config
+export const DOORMAN_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_CONFIG);
+export const DOORMAN_TREASURY = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_TREASURY);
 
 const DOORMAN_SEED = "doorman";
 console.log("programId: ", programId);

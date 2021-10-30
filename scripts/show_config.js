@@ -4,7 +4,7 @@ const { SystemProgram } = anchor.web3;
 
 const {
    CONFIG_ACCOUNT,
-   MINT_ACCOUNT,
+   MINT,
    getMintTokenVaultAddress,
    provider,
    program,
@@ -13,10 +13,10 @@ const {
 
 
 async function printConfig() {
-   
+
    await showConfig();
 
-   let mint = await provider.connection.getAccountInfo(MINT_ACCOUNT);
+   let mint = await provider.connection.getAccountInfo(MINT);
    mint.owner = mint.owner.toBase58();
    console.log("\n >> mint account: ", mint);
 

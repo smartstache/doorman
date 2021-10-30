@@ -3,14 +3,13 @@ const anchor = require('@project-serum/anchor');
 const { SystemProgram } = anchor.web3;
 
 const {
-   createMint,
    createTokenAccount,
-} = require("../utils");
+} = require("../jslib/utils");
 
 const {
-   CONFIG_ACCOUNT,
-   MINT_ACCOUNT,
-   TREASURY,
+   MINT,
+   DOORMAN_CONFIG,
+   DOORMAN_TREASURY,
    DOORMAN_SEED,
    program,
    provider,
@@ -40,11 +39,11 @@ const findAssociatedTokenAddress = async (walletAddress, tokenMintAddress) => {
 }
 
 
-async function performMint() {
+async function doPurchase() {
 
    let payerTokenAccount = await createTokenAccount(
       provider,
-      MINT_ACCOUNT,
+      MINT,
       provider.wallet.publicKey
    );
 
@@ -73,11 +72,11 @@ async function performMint() {
 
    let tx = await program.rpc.purchaseMintToken({
       accounts: {
-         config: CONFIG_ACCOUNT,
+         config: DOORMAN_CONFIG,
          mintTokenVault,
          mintTokenVaultAuthority: mint_token_vault_authority_pda,
          payer: provider.wallet.publicKey,
-         treasury: TREASURY,
+         treasury: DOORMAN_TREASURY,
          systemProgram: SystemProgram.programId,
          payerMintAccount: payerTokenAccount,
          // payerMintAccount: associatedTokenAddress,
@@ -90,4 +89,4 @@ async function performMint() {
    console.log("\n\n >> purchased mint token. deposited token in payer's token account: ", payerTokenAccount.toBase58());
 }
 
-performMint();
+doPurchase();

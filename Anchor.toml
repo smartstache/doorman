@@ -11,8 +11,8 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "mocha -t 1000000 tests/"
-initialize = "node scripts/initialize.js"
-show-config = "node scripts/show_config.js"
-update-config = "node scripts/update_config.js"
-test-mint = "node scripts/test_mint.js"
-add-address = "node scripts/add_address.js"
+initialize = "node -r dotenv/config scripts/initialize.js dotenv_config_path=./app/.env"
+show-config = "node -r dotenv/config scripts/show_config.js dotenv_config_path=./app/.env"
+update-config = "node -r dotenv/config scripts/update_config.js dotenv_config_path=./app/.env"
+test-purchase = "node -r dotenv/config scripts/test_purchase.js dotenv_config_path=./app/.env"
+add-address = "node -r dotenv/config scripts/add_address.js dotenv_config_path=./app/.env"

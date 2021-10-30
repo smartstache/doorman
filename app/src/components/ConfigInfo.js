@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Program, Provider, web3, BN } from "@project-serum/anchor";
-import { preflightCommitment, programId, idl, connection, CONFIG_ACCOUNT } from "../utils/config";
+import { preflightCommitment, programId, idl, connection, DOORMAN_CONFIG } from "../utils/config";
 import {Button, Card, CardActionArea, CardActions, CardContent, Grid, Paper} from "@mui/material";
 import { styled } from '@mui/material/styles';
 
@@ -20,7 +20,7 @@ export default function ConfigInfo({ wallet, provider, program }) {
    useEffect(() => {
       (async () => {
          if (program) {
-            let accountData = await program.account.config.fetch(CONFIG_ACCOUNT);
+            let accountData = await program.account.config.fetch(DOORMAN_CONFIG);
             accountData.costInSol = accountData.costInLamports.toNumber() / anchor.web3.LAMPORTS_PER_SOL;
             accountData.authority = accountData.authority.toString();
             accountData.treasury = accountData.treasury.toString();

@@ -297,7 +297,7 @@ pub enum ErrorCode {
     WrongTokenVault,
     #[msg("No mint tokens left")]
     NotEnoughMintTokens,
-    #[msg("Doorman not on duty")]
+    #[msg("Doorman not live yet")]
     DoormanNotLiveYet
 
 }

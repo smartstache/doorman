@@ -5,7 +5,7 @@ import { preflightCommitment, programId, idl, connection } from "../utils/config
 import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import ConfigInfo from "./ConfigInfo";
 import {Button} from "@mui/material";
-import {CONFIG_ACCOUNT, getMintTokenVaultAddress, getMintTokenVaultAuthorityPDA, TREASURY, MINT } from "../utils/config";
+import {DOORMAN_CONFIG, getMintTokenVaultAddress, getMintTokenVaultAuthorityPDA, DOORMAN_TREASURY, MINT } from "../utils/config";
 const spl = require("@solana/spl-token");
 const {
    ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -128,11 +128,11 @@ export default function Main({ network }) {
             let mint_token_vault_authority_pda = await getMintTokenVaultAuthorityPDA();
             let tx = await program.rpc.purchaseMintToken({
                accounts: {
-                  config: CONFIG_ACCOUNT,
+                  config: DOORMAN_CONFIG,
                   mintTokenVault,
                   mintTokenVaultAuthority: mint_token_vault_authority_pda,
                   payer: wallet.publicKey,
-                  treasury: TREASURY,
+                  treasury: DOORMAN_TREASURY,
                   systemProgram: SystemProgram.programId,
                   payerMintAccount: payerTokenAccount,
                   tokenProgram: TOKEN_PROGRAM_ID,
