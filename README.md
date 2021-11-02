@@ -93,6 +93,8 @@ This still needs a ton of work. Here's a very incomplete list of things that I n
 ### Help
 
 Would love some help on this. I know there's already a lot of devs out there looking for on-chain whitelist capability.
+And of course... tips are always appreciated: 7VyBHkyQw266uF5RfBTHAeuCWt8bSV12Xp8jfPsgj7fa
+
 
 ### Credits & Resources
 
