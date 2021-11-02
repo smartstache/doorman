@@ -92,7 +92,7 @@ This still needs a ton of work. Here's a very incomplete list of things that I n
 
 ### Help
 
-Would love some help on this. I know there's alread a lot of devs out there looking for on-chain whitelist capability.
+Would love some help on this. I know there's already a lot of devs out there looking for on-chain whitelist capability.
 
 ### Credits & Resources
 
