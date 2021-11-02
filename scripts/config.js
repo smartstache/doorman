@@ -1,4 +1,4 @@
-
+require('dotenv').config();
 const anchor = require('@project-serum/anchor');
 const utf8 = anchor.utils.bytes.utf8;
 
@@ -7,6 +7,8 @@ const DOORMAN_SEED = "doorman";
 // the mint that's used across doorman + candymachine
 const MINT = new anchor.web3.PublicKey(process.env.REACT_APP_MINT);
 const CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT = new anchor.web3.PublicKey(process.env.CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT);
+const CANDYMACHINE_PROGRAM = new anchor.web3.PublicKey(process.env.REACT_APP_CANDYMACHINE_PROGRAM);
+const CANDYMACHINE_ID = new anchor.web3.PublicKey(process.env.REACT_APP_CANDYMACHINE_ID);
 
 // candy machine config
 const CANDYMACHINE_TREASURY = new anchor.web3.PublicKey(process.env.REACT_APP_CANDYMACHINE_TREASURY);
@@ -15,6 +17,9 @@ const CANDYMACHINE_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_CAND
 // doorman config
 const DOORMAN_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_CONFIG);
 const DOORMAN_TREASURY = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_TREASURY);
+
+// whitelist address to add
+const WHITELIST_ADDRESS = new anchor.web3.PublicKey(process.env.WHITELIST_ADDRESS);
 
 
 async function getMintTokenVaultAddress() {
@@ -43,12 +48,15 @@ async function showConfig() {
 
 module.exports = {
    CANDYMACHINE_TREASURY,
+   CANDYMACHINE_PROGRAM,
+   CANDYMACHINE_ID,
    CANDYMACHINE_CONFIG,
    CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT,
    DOORMAN_SEED,
    DOORMAN_CONFIG,
    MINT,
    DOORMAN_TREASURY,
+   WHITELIST_ADDRESS,
    getMintTokenVaultAddress,
    provider,
    program,

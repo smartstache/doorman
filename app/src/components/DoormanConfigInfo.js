@@ -8,7 +8,7 @@ const anchor = require('@project-serum/anchor');
 
 const dateTimeFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'full', timeStyle: 'long'});
 
-export default function ConfigInfo({ wallet, provider, program }) {
+export default function DoormanConfigInfo({ wallet, provider, program }) {
 
 
    const [configInfo, setConfigInfo] = useState({

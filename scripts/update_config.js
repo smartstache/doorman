@@ -10,7 +10,7 @@ const {
 
 async function updateConfig() {
 
-   let costInSol = 0.5
+   let costInSol = 0.001;
    let goLiveDate = (Date.now() - 55555500000) / 1000;                                  // in the past
    let costInLamports = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * costInSol);
 

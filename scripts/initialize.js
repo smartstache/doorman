@@ -1,4 +1,12 @@
-require('dotenv').config();
+const {
+   DOORMAN_SEED,
+   provider,
+   program,
+   MINT,
+   DOORMAN_TREASURY,
+   CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT
+} = require("./config");
+
 const anchor = require('@project-serum/anchor');
 const utf8 = anchor.utils.bytes.utf8;
 const { SystemProgram } = anchor.web3;
@@ -9,14 +17,6 @@ const {
    createTokenAccount,
 } = require("../jslib/utils");
 
-const {
-   DOORMAN_SEED,
-   provider,
-   program,
-   MINT,
-   DOORMAN_TREASURY,
-   CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT
-} = require("./config");
 
 /////// ----- CONFIG ----- ///////
 

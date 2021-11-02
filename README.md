@@ -58,6 +58,7 @@ This still needs a ton of work. Here's a very incomplete list of things that I n
 - easier mint token account creation for the payer ..?
 - store bumps ..?
 - switch back to PDA for config ..?
+- consolidate the config for the anchor scripts into .env or something
 
 ### Credits & Resources
 

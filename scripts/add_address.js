@@ -12,20 +12,10 @@ const {
    DOORMAN_SEED,
    DOORMAN_CONFIG,
    MINT,
-   DOORMAN_TREASURY,
+   WHITELIST_ADDRESS,
    program,
    provider
 } = require("./config");
-
-//// ====== CONFIG ===== //////
-
-// the address that should get added to the whitelist
-// const whitelistAddress = new anchor.web3.PublicKey('79nLYswTuZWvtM136CuBn8FjDL84FM1Mr3yEhGf6KpPB');
-// id2
-const whitelistAddress = new anchor.web3.PublicKey('ER8fVYtNV1jp7ANhub6CE8EgmunwKq73qPC9k12akzTt');
-
-
-//// ====== CONFIG ===== //////
 
 async function addAddress() {
 
@@ -40,14 +30,14 @@ async function addAddress() {
       provider.wallet.publicKey
    );
 
-   let tx = await program.rpc.addWhitelistAddress(whitelistAddress, {
+   let tx = await program.rpc.addWhitelistAddress(WHITELIST_ADDRESS, {
       accounts: {
          config: DOORMAN_CONFIG,
          authority: provider.wallet.publicKey
       }
    });
 
-   console.log("\n\n >> added allowed address: ", whitelistAddress.toBase58());
+   console.log("\n\n >> added allowed address: ", WHITELIST_ADDRESS.toBase58());
 
 }
 
