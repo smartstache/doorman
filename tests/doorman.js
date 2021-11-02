@@ -12,7 +12,7 @@ const {
   getTokenAccount,
   createMint,
   createTokenAccount
-} = require("../utils");
+} = require("../jslib/utils");
 
 const {
   program,
@@ -52,7 +52,7 @@ describe('doorman', () => {
     );
 
     const [mintTokenVault, mintTokenVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-       [utf8.encode(DOORMAN_SEED), mint.publicKey.toBuffer()],         
+       [utf8.encode(DOORMAN_SEED), mint.publicKey.toBuffer()],
        program.programId
     );
 

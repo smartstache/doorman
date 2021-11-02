@@ -2,7 +2,7 @@ const anchor = require('@project-serum/anchor');
 const utf8 = anchor.utils.bytes.utf8;
 
 const {
-   CONFIG_ACCOUNT,
+   DOORMAN_CONFIG,
    provider,
    program,
    showConfig
@@ -10,13 +10,13 @@ const {
 
 async function updateConfig() {
 
-   let costInSol = 0.5
-   let goLiveDate = (Date.now() - 5500000) / 1000;                                  // now
+   let costInSol = 0.001;
+   let goLiveDate = (Date.now() - 55555500000) / 1000;                                  // in the past
    let costInLamports = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * costInSol);
 
    let tx = await program.rpc.updateConfig(costInLamports, new anchor.BN(goLiveDate), {
       accounts: {
-         config: CONFIG_ACCOUNT,
+         config: DOORMAN_CONFIG,
          authority: provider.wallet.publicKey,
       },
    });

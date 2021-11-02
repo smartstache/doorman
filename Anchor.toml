@@ -5,14 +5,20 @@ doorman = "D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV"
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
+#cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 #wallet = "~/.config/solana/id2.json"
 
 [scripts]
 test = "mocha -t 1000000 tests/"
-initialize = "node scripts/initialize.js"
-show-config = "node scripts/show_config.js"
-update-config = "node scripts/update_config.js"
-test-mint = "node scripts/test_mint.js"
-add-address = "node scripts/add_address.js"
+
+### for doorman interactions
+initialize = "node -r dotenv/config scripts/initialize.js dotenv_config_path=./app/.env"                # for initializing a doorman
+show-config = "node -r dotenv/config scripts/show_config.js dotenv_config_path=./app/.env"              # just print the doorman config
+update-config = "node -r dotenv/config scripts/update_config.js dotenv_config_path=./app/.env"          # update doorman config
+test-purchase = "node -r dotenv/config scripts/test_purchase.js dotenv_config_path=./app/.env"          # test a mint token purchase
+add-address = "node -r dotenv/config scripts/add_address.js dotenv_config_path=./app/.env"              # add an address
+
+### for candymachine interactions
+cm-update-config = "node -r dotenv/config scripts/cm_update_config.js dotenv_config_path=./app/.env"            # update candymachine config

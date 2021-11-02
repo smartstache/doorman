@@ -2,7 +2,8 @@
     "dependencies": {
         "@project-serum/anchor": "^0.17.0",
         "@project-serum/common": "^0.0.1-beta.3",
-        "@solana/spl-token": "^0.1.8"
+        "@solana/spl-token": "^0.1.8",
+        "dotenv": "^10.0.0"
     },
     "devDependencies": {
         "chai": "^4.3.4",
