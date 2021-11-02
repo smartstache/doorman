@@ -42,6 +42,7 @@ async function showConfig() {
    accountData.mintTokenVault = accountData.mintTokenVault.toString();
    accountData.goLiveDate = new Date(accountData.goLiveDate.toNumber() * 1000);
    accountData.mint = accountData.mint.toBase58();
+   accountData.addresses = accountData.addresses.map((addressPubKey) => addressPubKey.toBase58());
    console.log("\n >> config account data: ", accountData);
 }
 

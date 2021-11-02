@@ -10,10 +10,10 @@ const dateTimeFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'full', tim
 
 export default function DoormanConfigInfo({ wallet, provider, program }) {
 
-
    const [configInfo, setConfigInfo] = useState({
       cost: null
    });
+   const [onWhitelist, setOnWhitelist] = useState(false);
    // const [program, setProgram] = useState();
 
    // init the wallets & connections and stuff
@@ -27,6 +27,12 @@ export default function DoormanConfigInfo({ wallet, provider, program }) {
             accountData.mintTokenVault = accountData.mintTokenVault.toString();
             accountData.goLiveDate = dateTimeFormat.format(new Date(accountData.goLiveDate.toNumber() * 1000));
             console.log("\n >> config account data: ", accountData);
+            for (let address of accountData.addresses) {
+               if (address.equals(wallet.publicKey)) {
+                  setOnWhitelist(true);
+                  break;
+               }
+            }
             setConfigInfo(accountData);
          }
       })();
@@ -39,6 +45,10 @@ export default function DoormanConfigInfo({ wallet, provider, program }) {
          <CardActionArea>
             <CardContent>
                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                     {onWhitelist && <b>Your address is on the whitelist!</b>}
+                     {!onWhitelist && <b>Your address is not on the whitelist.</b>}
+                  </Grid>
                   <Grid item xs={3}>
                      Doors Open:
                   </Grid>
