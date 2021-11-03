@@ -71,7 +71,7 @@ Here's the full list of steps to set up a candy machine + doorman on devnet.
 - now initialize doorman: ```anchor run initialize```
   - save the config account to use and enter it into .env as REACT_APP_DOORMAN_CONFIG
 - if you want, you can update doorman's config: ```anchor run update-config```
-- set WHITELIST_ADDRESS in .env to your test whitelist address and add it to the whitelist: ```anchor run add-address```
+- add any addresses you'd like to whitelist to the addy.txt file and run: ```anchor run add-address```
 - update config.js to use devnet
 - now fire up the app: ```yarn start```
 - if the wallet you're connecting with has been properly added, you should see the message "Your address is on the whitelist!"
