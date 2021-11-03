@@ -74,6 +74,9 @@ Here's the full list of steps to set up a candy machine + doorman on devnet.
 - set WHITELIST_ADDRESS in .env to your test whitelist address and add it to the whitelist: ```anchor run add-address```
 - update config.js to use devnet
 - now fire up the app: ```yarn start```
+- if the wallet you're connecting with has been properly added, you should see the message "Your address is on the whitelist!"
+- click the "purchase mint token" button to purchase a minting token with SOL
+- then click the "mint" button to mint an nft using the token you just purchased
 
 
 ### TODO
@@ -83,7 +86,6 @@ This still needs a ton of work. Here's a very incomplete list of things that I n
   an account the way I'm doing it with Anchor (10k)
 - address removal
 - add a button to perform the purchase + mint in a single transaction  
-- a working sample app with candy machine integration
 - easier mint token account creation for the payer ..?
 - store bumps ..?
 - switch back to PDA for config ..?
@@ -103,7 +105,7 @@ And of course... tips are always appreciated: 7VyBHkyQw266uF5RfBTHAeuCWt8bSV12Xp
 - good explanation of PDAs: https://www.brianfriel.xyz/understanding-program-derived-addresses/
 - i straight lifted the mint token account/authority stuff from: https://hackmd.io/@ironaddicteddog/anchor_example_escrow
 - https://github.com/exiled-apes/candy-machine-mint was a great starter
-
+- help from https://github.com/hogyzen12 
 
 
 

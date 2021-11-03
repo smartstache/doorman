@@ -18,10 +18,6 @@ const CANDYMACHINE_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_CAND
 const DOORMAN_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_CONFIG);
 const DOORMAN_TREASURY = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_TREASURY);
 
-// whitelist address to add
-const WHITELIST_ADDRESS = new anchor.web3.PublicKey(process.env.WHITELIST_ADDRESS);
-
-
 async function getMintTokenVaultAddress() {
    const [mintTokenVault, mintTokenVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
       [utf8.encode(DOORMAN_SEED), MINT.toBuffer()],
@@ -46,6 +42,7 @@ async function showConfig() {
    console.log("\n >> config account data: ", accountData);
 }
 
+const txTimeout = 30000;
 
 module.exports = {
    CANDYMACHINE_TREASURY,
@@ -57,9 +54,9 @@ module.exports = {
    DOORMAN_CONFIG,
    MINT,
    DOORMAN_TREASURY,
-   WHITELIST_ADDRESS,
    getMintTokenVaultAddress,
    provider,
    program,
-   showConfig
+   showConfig,
+   txTimeout
 };
