@@ -19,7 +19,7 @@ import DoormanConfigInfo from "./DoormanConfigInfo";
 import {Alert, Button, Snackbar} from "@mui/material";
 import CandyMachineConfigInfo from "./CandyMachineConfigInfo";
 import {getCandyMachineState, mintOneToken} from "../utils/candyutils";
-import {awaitTransactionSignatureConfirmation} from "../utils/connection";
+import {awaitTransactionSignatureConfirmation, sendTransactionWithRetry} from "../utils/connection";
 
 const spl = require("@solana/spl-token");
 const {
@@ -223,9 +223,10 @@ export default function Main({ network }) {
             let mint_token_vault_authority_pda = await getMintTokenVaultAuthorityPDA();
 
             const purchaseMintIx =
-               await program.instruction.purchaseMintToken({
+               await program.instruction.purchaseMintToken(whitelistAddressIndex, {
                   accounts: {
                      config: DOORMAN_CONFIG,
+                     whitelist: DOORMAN_WHITELIST,
                      mintTokenVault,
                      mintTokenVaultAuthority: mint_token_vault_authority_pda,
                      payer: wallet.publicKey,
@@ -241,11 +242,21 @@ export default function Main({ network }) {
                purchaseMintIx
             );
 
+            /*  this works ---> just a mint token purchase
+            let tx = await sendTransactionWithRetry(
+               connection,
+               wallet,
+               premintInstructions,
+               [],
+            );
+            console.log(">>>> TX >>> ", tx);
+             */
+
+            console.log("purchase + mint premintInstructions: ", premintInstructions);
             const mintTxId = await mintOneToken(
                candyMachine,
                wallet.publicKey,
-               // todo: make this work ..?
-               // premintInstructions
+               premintInstructions
             );
 
             console.log("Mint tx id: ", mintTxId);
@@ -255,6 +266,7 @@ export default function Main({ network }) {
             await refreshMintTokenBalance();
          }
       } catch (error) {
+         console.log("problem with purchase + mint", error);
          let message = error.msg || "Purchase failed! Please make sure doors are open and your wallet is on the whitelist.";
          if (error.msg) {
             if (error.message.indexOf("0x12c")) {
@@ -446,13 +458,13 @@ export default function Main({ network }) {
                      {whitelistAddressIndex < 0 && <h2>Sorry, your address is NOT on the whitelist.</h2>}
                   </Grid>
                   <Grid item xs={4}>
-                     <Button variant="contained" onClick={onPurchase}>Purchase Mint Token</Button>
+                     <Button variant="contained" onClick={onPurchase}>Purchase Mint Token (step 1/2)</Button>
                   </Grid>
                   <Grid item xs={8}>
                      Mint Tokens In Wallet: {mintTokenBalance}
                   </Grid>
                   <Grid item xs={12}>
-                     <Button variant="contained" onClick={onPurchaseAndMint}>Purchase Mint Token + Mint (doesn't work yet/not tested)</Button>
+                     <Button variant="contained" onClick={onPurchaseAndMint}>Purchase Mint Token + Mint (single step)</Button>
                   </Grid>
                   <Grid item xs={12}>
                      <h2>Candy Machine Info</h2>
@@ -461,7 +473,7 @@ export default function Main({ network }) {
                      {provider && <CandyMachineConfigInfo itemsAvailable={itemsAvailable} itemsRemaining={itemsRemaining} itemsRedeemed={itemsRedeemed}/>}
                   </Grid>
                   <Grid item xs={4}>
-                     <Button variant="contained" onClick={onMint}>Mint</Button>
+                     <Button variant="contained" onClick={onMint}>Mint (step 2/2)</Button>
                   </Grid>
                </Grid>
                <Snackbar

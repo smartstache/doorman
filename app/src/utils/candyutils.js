@@ -107,6 +107,7 @@ const getTokenWallet = async (wallet, mint) => {
 export const mintOneToken = async (
    candyMachine,                             // candy machine account
    payer,
+   premintInstructions = null
 ) => {
    console.log("candy machine: ", candyMachine);
    const mint = anchor.web3.Keypair.generate();
@@ -123,7 +124,11 @@ export const mintOneToken = async (
 
    const remainingAccounts = [];
    const signers = [mint];
-   const instructions = [
+   const instructions = [];
+   if (premintInstructions) {
+      instructions.push(...premintInstructions);
+   }
+   const accountInstructions = [
       anchor.web3.SystemProgram.createAccount({
          fromPubkey: payer,
          newAccountPubkey: mint.publicKey,
@@ -156,6 +161,8 @@ export const mintOneToken = async (
          1,
       ),
    ];
+
+   instructions.push(...accountInstructions);
 
    let tokenAccount;
    if (candyMachine.state.tokenMint) {
@@ -230,6 +237,7 @@ export const mintOneToken = async (
       );
    }
    try {
+      console.log("instructions to be executed: ", instructions);
       return (
          await sendTransactionWithRetry(
             candyMachine.program.provider.connection,
