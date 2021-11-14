@@ -1,5 +1,6 @@
 [programs.localnet]
 doorman = "D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV"
+nft_candy_machine = "cndyAnrLdpjq1Ssp1z8xxDsB8dxe7u4HL5Nxi2K5WXZ"
 
 [registry]
 url = "https://anchor.projectserum.com"

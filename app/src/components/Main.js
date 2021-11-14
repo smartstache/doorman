@@ -245,7 +245,7 @@ export default function Main({ network }) {
                candyMachine,
                wallet.publicKey,
                // todo: make this work ..?
-               // premintInstructions
+               premintInstructions
             );
 
             console.log("Mint tx id: ", mintTxId);

@@ -1,4 +1,17 @@
 [workspace]
 members = [
-    "programs/*"
+    "programs/*",
+#    "token-metadata/",
+#    "token-vault/",
+
+#    "rust/*",
+#    "nft-candy-machine/",
+#    "fair-launch/",
+#    "auction/program",
+#    "metaplex/program",
+#    "metaplex/test",
+#    "token-vault/test",
+#    "token-metadata/test",
+]
+exclude = [
 ]
