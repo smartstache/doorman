@@ -5,6 +5,7 @@ const utf8 = anchor.utils.bytes.utf8;
 const DOORMAN_SEED = "doorman";
 
 // the mint that's used across doorman + candymachine
+console.log('process.env.REACT_APP_MINT: ', process.env.REACT_APP_MINT);
 const MINT = new anchor.web3.PublicKey(process.env.REACT_APP_MINT);
 const CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT = new anchor.web3.PublicKey(process.env.CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT);
 const CANDYMACHINE_PROGRAM = new anchor.web3.PublicKey(process.env.REACT_APP_CANDYMACHINE_PROGRAM);
@@ -17,6 +18,7 @@ const CANDYMACHINE_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_CAND
 // doorman config
 const DOORMAN_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_CONFIG);
 const DOORMAN_TREASURY = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_TREASURY);
+const DOORMAN_WHITELIST = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_WHITELIST);
 
 async function getMintTokenVaultAddress() {
    const [mintTokenVault, mintTokenVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
@@ -38,7 +40,6 @@ async function showConfig() {
    accountData.mintTokenVault = accountData.mintTokenVault.toString();
    accountData.goLiveDate = new Date(accountData.goLiveDate.toNumber() * 1000);
    accountData.mint = accountData.mint.toBase58();
-   accountData.addresses = accountData.addresses.map((addressPubKey) => addressPubKey.toBase58());
    console.log("\n >> config account data: ", accountData);
 }
 
@@ -50,6 +51,7 @@ module.exports = {
    CANDYMACHINE_ID,
    CANDYMACHINE_CONFIG,
    CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT,
+   DOORMAN_WHITELIST,
    DOORMAN_SEED,
    DOORMAN_CONFIG,
    MINT,

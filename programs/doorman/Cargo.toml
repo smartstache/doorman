@@ -15,6 +15,6 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.17.0"
-anchor-spl = "0.17.0"
+anchor-lang = "0.18.0"
+anchor-spl = "0.18.0"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }

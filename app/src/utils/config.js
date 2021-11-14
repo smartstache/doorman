@@ -40,6 +40,7 @@ export const CANDYMACHINE_CONFIG = new anchor.web3.PublicKey(process.env.REACT_A
 // doorman config
 export const DOORMAN_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_CONFIG);
 export const DOORMAN_TREASURY = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_TREASURY);
+export const DOORMAN_WHITELIST = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_WHITELIST);
 
 const DOORMAN_SEED = "doorman";
 console.log("programId: ", programId);
@@ -68,6 +69,8 @@ export async function getMintTokenVaultAuthorityPDA() {
    return mint_token_vault_authority_pda;
 }
 
+
+export const TX_TIMEOUT = 30000; // milliseconds (confirm this works for your project)
 
 /*
 async function getProvider() {

@@ -40,7 +40,7 @@ solana-test-validator. Here's the steps to try it out:
 - initialize: ```anchor run initialize```
   - this will create a doorman with default settings + new token mint
 - copy the 3 accounts that the initialize script spit out into the config.js file
-- edit the add_address.js file with an address you'd like to put on the whitelist 
+- edit the add_addresses.js file with an address you'd like to put on the whitelist 
 and add it: ```anchor run add-address```
 - now update Anchor.toml and change the wallet to the address that was whitelisted
 - run a test mint: ```anchor run test-mint```
@@ -57,23 +57,25 @@ Here's the full list of steps to set up a candy machine + doorman on devnet.
 - create a token account for it: ```spl-token create-account BNbYgmELT2o1VbGcg5vq7EK2AWL7UmLe9dhizMdGy8Pg```
   - save the account (e.g. 4a3G1MUiAUvssZWbHG9WyM2GZXLyZstVp4nQkwRLP7aP)
 - mint some tokens into the account: ```spl-token mint BNbYgmELT2o1VbGcg5vq7EK2AWL7UmLe9dhizMdGy8Pg 10000 ```
-- now go through steps to set up your candy machine, making sure to specify the mint + account when executing the create_candy_machine command
-  - save the candy machine id
-  - save the candy machine config address
+- now go through steps to set up your candy machine, making sure to specify the mint + spl token account that you just created, when executing the create_candy_machine command
+  - save the candy machine id (this is what the create_candy_machine command spits out; the candy machine pubkey)
+  - save the candy machine config address (this can be found in the .cache/devnet-temp file that gets created; it's the "config" pubkey)
 - go into doorman, and update the following fields in .env with the ones you just saved above:
     - REACT_APP_CANDYMACHINE_CONFIG == the 'config' key from the candy machine config file
     - REACT_APP_CANDYMACHINE_ID == the candy machine public key you got when executing the create_candy_machine command (also found as the candyMachineAddress in the candy machine config file)
     - REACT_APP_MINT == the mint you created
     - CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT == the token account that was created, containing a bunch of minting coins
+    - REACT_APP_CANDYMACHINE_TREASURY == the token account you created (or a different one), this is where the CM will store the tokens that are used to purchase an NFT
 - get ready to initialize your doorman
   - make sure you've checked Anchor.toml so that you're using the appropriate cluster + authority/keypair you used when setting up the candy machine
   - set the REACT_APP_DOORMAN_TREASURY in .env to the wallet that will contain the SOL when whitelisted users purchase their mint token
 - now initialize doorman: ```anchor run initialize```
   - save the config account to use and enter it into .env as REACT_APP_DOORMAN_CONFIG
+  - save the whitelist account public key as REACT_APP_DOORMAN_WHITELIST in .env
 - if you want, you can update doorman's config: ```anchor run update-config```
-- add any addresses you'd like to whitelist to the addy.txt file and run: ```anchor run add-address```
-- update config.js to use devnet
-- now fire up the app: ```yarn start```
+- add any addresses you'd like to whitelist to the addy.txt file and run: ```anchor run add-addresses```
+- update app/src/utils/config.js to use devnet
+- now fire up the /app: ```yarn start```
 - if the wallet you're connecting with has been properly added, you should see the message "Your address is on the whitelist!"
 - click the "purchase mint token" button to purchase a minting token with SOL
 - then click the "mint" button to mint an nft using the token you just purchased

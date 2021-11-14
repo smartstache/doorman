@@ -11,14 +11,19 @@
           "isSigner": true
         },
         {
-          "name": "treasury",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authority",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "whitelist",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasury",
+          "isMut": false,
+          "isSigner": false
         },
         {
           "name": "mint",
@@ -71,6 +76,50 @@
       ]
     },
     {
+      "name": "addWhitelistAddresses",
+      "accounts": [
+        {
+          "name": "config",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "whitelist",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "addresses",
+          "type": {
+            "vec": "publicKey"
+          }
+        }
+      ]
+    },
+    {
+      "name": "resetWhitelistCounter",
+      "accounts": [
+        {
+          "name": "config",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "updateConfig",
       "accounts": [
         {
@@ -96,27 +145,12 @@
           "type": {
             "option": "i64"
           }
-        }
-      ]
-    },
-    {
-      "name": "addWhitelistAddress",
-      "accounts": [
-        {
-          "name": "config",
-          "isMut": true,
-          "isSigner": false
         },
         {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        }
-      ],
-      "args": [
-        {
-          "name": "whitelistAddress",
-          "type": "publicKey"
+          "name": "on",
+          "type": {
+            "option": "bool"
+          }
         }
       ]
     },
@@ -132,6 +166,11 @@
           "name": "payer",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "whitelist",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "systemProgram",
@@ -169,15 +208,41 @@
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "whitelistAddressIndex",
+          "type": "u16"
+        }
+      ]
     }
   ],
   "accounts": [
+    {
+      "name": "Whitelist",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "addresses",
+            "type": {
+              "array": [
+                "publicKey",
+                500
+              ]
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "Config",
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "whitelistOn",
+            "type": "bool"
+          },
           {
             "name": "costInLamports",
             "type": "u64"
@@ -188,6 +253,10 @@
           },
           {
             "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "whitelist",
             "type": "publicKey"
           },
           {
@@ -207,10 +276,8 @@
             "type": "u8"
           },
           {
-            "name": "addresses",
-            "type": {
-              "vec": "publicKey"
-            }
+            "name": "counter",
+            "type": "u16"
           }
         ]
       }
@@ -219,33 +286,48 @@
   "errors": [
     {
       "code": 300,
-      "name": "NotOnWhitelist",
-      "msg": "This address is not on the whitelist"
-    },
-    {
-      "code": 301,
       "name": "NotEnoughSOL",
       "msg": "Not enough SOL to pay for the mint token"
     },
     {
-      "code": 302,
+      "code": 301,
       "name": "WrongTreasury",
       "msg": "Wrong treasury"
     },
     {
-      "code": 303,
+      "code": 302,
       "name": "WrongTokenVault",
       "msg": "Wrong token vault"
     },
     {
-      "code": 304,
+      "code": 303,
       "name": "NotEnoughMintTokens",
       "msg": "No mint tokens left"
     },
     {
-      "code": 305,
+      "code": 304,
       "name": "DoormanNotLiveYet",
-      "msg": "Doorman not on duty"
+      "msg": "Doorman not live yet"
+    },
+    {
+      "code": 305,
+      "name": "NotEnoughSpace",
+      "msg": "Not enough space left in whitelist!"
+    },
+    {
+      "code": 306,
+      "name": "WrongWhitelist",
+      "msg": "Wrong whitelist"
+    },
+    {
+      "code": 307,
+      "name": "WhitelistAddressIndexOutOfRange",
+      "msg": "Whitelist address index out of range"
+    },
+    {
+      "code": 308,
+      "name": "WhitelistAddressNotFound",
+      "msg": "Whitelisted address not found at given index"
     }
   ],
   "metadata": {

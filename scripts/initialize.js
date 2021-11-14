@@ -31,6 +31,7 @@ const GO_LIVE_DATE = new Date() / 1000;      // now
 
 // config account: will need the public key for this guy
 const configAccount = anchor.web3.Keypair.generate();
+const whitelistData = anchor.web3.Keypair.generate();
 
 async function displayConfigAccount(message) {
    let accountData = await program.account.config.fetch(configAccount.publicKey);
@@ -71,8 +72,8 @@ async function performInit() {
    let treasuryKey = null;
    if (CREATE_NEW_TREASURY) {
       // generate a treasury to send sol used to purchase the mint token to
-      treasury = anchor.web3.Keypair.generate();
-      treasuryKey = treasury.publicKey;
+      treasuryKey = anchor.web3.Keypair.generate().publicKey;
+      // treasuryKey = treasury.publicKey;
    } else {
       treasuryKey = DOORMAN_TREASURY
    }
@@ -81,8 +82,12 @@ async function performInit() {
    let costInLamports = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * COST_IN_SOL);
    let numMintTokens = new anchor.BN(NUM_MINT_TOKENS);
    let goLiveDate = new anchor.BN(GO_LIVE_DATE);               // now
+
+   const whitelistAccountSize = 8 + (32 * 500);  // up to 500 addresses
+
    let tx = await program.rpc.initialize(mintTokenVaultBump, numMintTokens, costInLamports, goLiveDate, {
       accounts: {
+         whitelist: whitelistData.publicKey,
          config: configAccount.publicKey,
          treasury: treasuryKey,
          authority: provider.wallet.publicKey,
@@ -93,7 +98,19 @@ async function performInit() {
          mintTokenVault,
          creatorMintAccount: initializorMintTokenAccount
       },
-      signers: [configAccount]
+      signers: [configAccount, whitelistData],
+      instructions: [
+         anchor.web3.SystemProgram.createAccount({
+            fromPubkey: program.provider.wallet.publicKey,
+            lamports:
+               await program.provider.connection.getMinimumBalanceForRentExemption(
+                  whitelistAccountSize
+               ),
+            newAccountPubkey: whitelistData.publicKey,
+            programId: program.programId,
+            space: whitelistAccountSize,
+         }),
+      ],
    });
 
    await displayConfigAccount("config account");
@@ -102,6 +119,8 @@ async function performInit() {
    console.log(">>> config account to use: ", configAccount.publicKey.toBase58());
    console.log(">>> mint account to use: ", mintKey.toBase58());
    console.log(">>> treasury to use: ", treasuryKey.toBase58());
+   console.log(">>> whitelist account public key: ", whitelistData.publicKey);
+   console.log(">>> whitelist account secret key: ", whitelistData.secretKey);
    console.log("\n\n")
 
 }
