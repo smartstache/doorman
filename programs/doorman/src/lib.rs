@@ -4,6 +4,8 @@ use spl_token::instruction::AuthorityType;
 use std::ops::DerefMut;
 use std::convert::TryInto;
 
+// use nft_candy_machine::program::nft_candy_machine;
+
 declare_id!("D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV");
 
 use {
@@ -109,47 +111,6 @@ pub mod doorman {
         Ok(())
     }
 
-    /*
-    pub fn initialize(ctx: Context<Initialize>,
-                      _mint_token_vault_bump: u8,                           // for whatever reason the bump needed to be first, otherwise it complains about seed
-                      num_tokens: u64,
-                      cost_in_lamports: u64,
-                      go_live_date: i64) -> ProgramResult {
-
-        let config_account = &mut ctx.accounts.config;
-        config_account.treasury = *ctx.accounts.treasury.key;
-        config_account.cost_in_lamports = cost_in_lamports;
-        config_account.mint_token_vault = *ctx.accounts.mint_token_vault.to_account_info().key;
-        config_account.authority = *ctx.accounts.authority.key;
-        config_account.go_live_date = go_live_date;
-        config_account.mint = *ctx.accounts.mint.to_account_info().key;
-        config_account.mint_token_vault_bump = _mint_token_vault_bump;
-
-        msg!("token account owner: {}", ctx.accounts.mint_token_vault.owner);
-
-        // set pda authority
-        let (mint_token_vault_authority, _mint_token_vault_authority_bump) =
-            Pubkey::find_program_address(&[PREFIX.as_bytes()], ctx.program_id);
-
-        token::set_authority(
-            ctx.accounts.into_set_authority_context(),
-            AuthorityType::AccountOwner,
-            Some(mint_token_vault_authority),
-        )?;
-
-        msg!("mint token vault owner: {}", ctx.accounts.mint_token_vault.owner);
-
-        // Transfer mint token from user to vault
-        token::transfer(
-            ctx.accounts.into_transfer_to_pda_context(),
-            num_tokens
-        )?;
-
-        Ok(())
-    }
-
-     */
-
     pub fn update_config(ctx: Context<UpdateConfig>,
                          cost_in_lamports: Option<u64>,
                          go_live_date: Option<i64>,
@@ -171,6 +132,10 @@ pub mod doorman {
         Ok(())
     }
 
+    // uses a mint token from the vault with the candy machine to mint
+    // pub fn mint_cm(ctx: Context<MintCM>) -> ProgramResult {
+    //
+    // }
 
     // user sends sol for a mint token
     pub fn purchase_mint_token(ctx: Context<PurchaseMintToken>, whitelist_address_index: u16) -> ProgramResult {
@@ -377,6 +342,33 @@ impl<'info> PurchaseMintToken<'info> {
         };
         CpiContext::new(self.token_program.clone(), cpi_accounts)
     }
+}
+
+#[derive(Accounts)]
+pub struct MintCM<'info> {
+
+    // cm_program: Program<'info, nft_candy_machine>,
+
+    #[account(mut)]
+    config: ProgramAccount<'info, Config>,
+    #[account(mut, signer)]
+    payer: AccountInfo<'info>,
+    #[account(mut)]
+    whitelist: AccountLoader<'info, Whitelist>,
+    #[account(address = system_program::ID)]
+    system_program: AccountInfo<'info>,
+    #[account(mut)]
+    treasury: AccountInfo<'info>,
+    #[account(mut)]
+    mint_token_vault: Account<'info, TokenAccount>,
+    mint_token_vault_authority: AccountInfo<'info>,
+    clock: Sysvar<'info, Clock>,
+
+    #[account(mut, "payer_mint_account.owner == *payer.key")]
+    payer_mint_account: Account<'info, TokenAccount>,
+
+    #[account(executable, "token_program.key == &token::ID")]
+    token_program: AccountInfo<'info>,
 
 }
 
