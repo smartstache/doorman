@@ -96,7 +96,7 @@ async function performInit() {
          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
          tokenProgram: TOKEN_PROGRAM_ID,
          mintTokenVault,
-         creatorMintAccount: initializorMintTokenAccount
+         authorityMintAccount: initializorMintTokenAccount
       },
       signers: [configAccount, whitelistData],
       instructions: [

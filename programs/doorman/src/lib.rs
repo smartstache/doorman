@@ -2,7 +2,6 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, TokenAccount, Transfer, SetAuthority};
 use spl_token::instruction::AuthorityType;
 use std::ops::DerefMut;
-use std::convert::TryInto;
 
 declare_id!("D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV");
 
@@ -73,6 +72,17 @@ pub mod doorman {
         Ok(())
     }
 
+    pub fn add_mint_tokens(ctx: Context<AddMintTokens>, num_tokens: u64) -> ProgramResult {
+
+        // Transfer mint token from user to vault
+        token::transfer(
+            ctx.accounts.into_transfer_to_pda_context(),
+            num_tokens
+        )?;
+
+        Ok(())
+    }
+
     pub fn add_whitelist_addresses(
         ctx: Context<AddWhitelistAddresses>,
         addresses: Vec<Pubkey>,
@@ -86,7 +96,7 @@ pub mod doorman {
         }
 
         let length = addresses.len();
-        let mut counter = config.counter as usize;
+        let counter = config.counter as usize;
 
         // Check that new addresses don't exceed remaining space
         if length + counter > MAX_LEN {
@@ -267,8 +277,8 @@ pub mod doorman {
 #[instruction(mint_token_vault_bump: u8)]
 pub struct Initialize<'info> {
     #[account(
-        init,
-        payer = authority,
+    init,
+    payer = authority,
     )]
     config: ProgramAccount<'info, Config>,
     #[account(mut, signer)]
@@ -281,15 +291,15 @@ pub struct Initialize<'info> {
     rent: Sysvar<'info, Rent>,
     #[account(executable, "token_program.key == &token::ID")]
     token_program: AccountInfo<'info>,
-    #[account(mut, "creator_mint_account.owner == *authority.key")]
-    creator_mint_account: Account<'info, TokenAccount>,
+    #[account(mut, "authority_mint_account.owner == *authority.key")]
+    authority_mint_account: Account<'info, TokenAccount>,
     #[account(
-        init,
-        seeds = [PREFIX.as_bytes(), mint.key().as_ref()],
-        bump = mint_token_vault_bump,
-        payer = authority,
-        token::mint = mint,
-        token::authority = authority
+    init,
+    seeds = [PREFIX.as_bytes(), mint.key().as_ref()],
+    bump = mint_token_vault_bump,
+    payer = authority,
+    token::mint = mint,
+    token::authority = authority
     )]
     mint_token_vault: Account<'info, TokenAccount>,
 }
@@ -298,7 +308,7 @@ pub struct Initialize<'info> {
 impl<'info> Initialize<'info> {
     fn into_transfer_to_pda_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         let cpi_accounts = Transfer {
-            from: self.creator_mint_account.to_account_info().clone(),
+            from: self.authority_mint_account.to_account_info().clone(),
             to: self.mint_token_vault.to_account_info().clone(),
             authority: self.authority.clone(),
         };
@@ -313,6 +323,39 @@ impl<'info> Initialize<'info> {
         CpiContext::new(self.token_program.clone(), cpi_accounts)
     }
 }
+
+
+#[derive(Accounts)]
+#[instruction(mint_token_vault_bump: u8)]
+pub struct AddMintTokens<'info> {
+    #[account(mut, signer)]
+    authority: AccountInfo<'info>,
+    mint: Account<'info, Mint>,                                      // mint for the token used to hit the candy machine
+    // system_program: Program<'info, System>,
+
+    // rent: Sysvar<'info, Rent>,
+
+    #[account(executable, "token_program.key == &token::ID")]
+    token_program: AccountInfo<'info>,
+
+    #[account(mut, "authority_mint_account.owner == *authority.key")]
+    authority_mint_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    mint_token_vault: Account<'info, TokenAccount>,
+}
+
+impl<'info> AddMintTokens<'info> {
+
+    fn into_transfer_to_pda_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_accounts = Transfer {
+            from: self.authority_mint_account.to_account_info().clone(),
+            to: self.mint_token_vault.to_account_info().clone(),
+            authority: self.authority.clone(),
+        };
+        CpiContext::new(self.token_program.clone(), cpi_accounts)
+    }
+}
+
 
 #[derive(Accounts)]
 pub struct AddWhitelistAddresses<'info> {

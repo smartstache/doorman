@@ -33,7 +33,6 @@ describe('doorman', () => {
   const configAccount = anchor.web3.Keypair.generate();
   const whitelistData = anchor.web3.Keypair.generate();
 
-  anchor.web3.Keypair.fromSecretKey()
   console.log("whitelistData: ", whitelistData.secretKey);
 
   async function displayConfigAccount(message) {
@@ -61,7 +60,7 @@ describe('doorman', () => {
 
     let mint = await createMint(provider, provider.wallet.publicKey, 0);
 
-    let creatorMintAccount = await createTokenAccount(
+    let authorityMintAccount = await createTokenAccount(
        provider,
        mint.publicKey,
        provider.wallet.publicKey
@@ -69,7 +68,7 @@ describe('doorman', () => {
 
     // now the user token account has 1000 tokens
     await mint.mintTo(
-       creatorMintAccount,
+       authorityMintAccount,
        provider.wallet.publicKey,
        [],
        10000,
@@ -100,7 +99,7 @@ describe('doorman', () => {
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
         tokenProgram: TOKEN_PROGRAM_ID,
         mintTokenVault,
-        creatorMintAccount
+        authorityMintAccount
       },
       signers: [configAccount, whitelistData],
       instructions: [
@@ -119,6 +118,21 @@ describe('doorman', () => {
 
     console.log("initialize big transaction signature", tx);
     await displayConfigAccount("config data after init");
+
+    // add another batch of tokens
+    tx = await program.rpc.addMintTokens(numMintTokens, {
+      accounts: {
+
+        authority: provider.wallet.publicKey,
+        mint: mint.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        authorityMintAccount,
+        mintTokenVault,
+      },
+    });
+
+    console.log("Added more tokens: ", tx);
+
 
 
     // /* this works, just commenting out for now for testing

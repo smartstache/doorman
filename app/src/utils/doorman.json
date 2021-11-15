@@ -46,7 +46,7 @@
           "isSigner": false
         },
         {
-          "name": "creatorMintAccount",
+          "name": "authorityMintAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -72,6 +72,42 @@
         {
           "name": "goLiveDate",
           "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "addMintTokens",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "authorityMintAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintTokenVault",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "numTokens",
+          "type": "u64"
         }
       ]
     },
