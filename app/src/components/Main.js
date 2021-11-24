@@ -321,6 +321,11 @@ export default function Main({ network }) {
             let mintTokenVault = await getMintTokenVaultAddress();
             let mint_token_vault_authority_pda = await getMintTokenVaultAuthorityPDA();
 
+            console.log("config: ", DOORMAN_CONFIG.toString());
+            console.log("whitelist: ", DOORMAN_WHITELIST.toString());
+            console.log("payer: ", provider.wallet.publicKey.toString());
+            console.log("treasury: ", DOORMAN_TREASURY.toString());
+
 
             let txId = await program.rpc.purchaseMintToken(whitelistAddressIndex, {
                accounts: {

@@ -13,7 +13,8 @@ const {
    DOORMAN_SEED,
    program,
    provider,
-   getMintTokenVaultAddress
+   getMintTokenVaultAddress,
+   DOORMAN_WHITELIST
 } = require("./config");
 
 const {
@@ -70,13 +71,14 @@ async function doPurchase() {
    let associatedTokenAddress = await findAssociatedTokenAddress(provider.wallet.publicKey, MINT_ACCOUNT);
     */
 
-   let tx = await program.rpc.purchaseMintToken({
+   let tx = await program.rpc.purchaseMintToken(0, {
       accounts: {
          config: DOORMAN_CONFIG,
          mintTokenVault,
          mintTokenVaultAuthority: mint_token_vault_authority_pda,
          payer: provider.wallet.publicKey,
          treasury: DOORMAN_TREASURY,
+         whitelist: DOORMAN_WHITELIST,
          systemProgram: SystemProgram.programId,
          payerMintAccount: payerTokenAccount,
          // payerMintAccount: associatedTokenAddress,

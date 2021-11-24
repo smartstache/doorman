@@ -119,7 +119,7 @@ async function performInit() {
    console.log(">>> config account to use: ", configAccount.publicKey.toBase58());
    console.log(">>> mint account to use: ", mintKey.toBase58());
    console.log(">>> treasury to use: ", treasuryKey.toBase58());
-   console.log(">>> whitelist account public key: ", whitelistData.publicKey);
+   console.log(">>> whitelist account public key: ", whitelistData.publicKey.toString());
    console.log(">>> whitelist account secret key: ", whitelistData.secretKey);
    console.log("\n\n")
 

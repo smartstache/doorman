@@ -25,7 +25,7 @@ const fs = require("fs");
 
 // const {createTokenAccountInstrs} = require("@project-serum/common");
 
-const BIG_WHITELIST_LEN = 500;
+const BIG_WHITELIST_LEN = 555;
 const DATETIME_FORMAT = new Intl.DateTimeFormat('en-GB', { dateStyle: 'full', timeStyle: 'long'});
 
 describe('doorman', () => {
@@ -83,7 +83,7 @@ describe('doorman', () => {
 
     let costInSol = 5;
     let costInLamports = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * costInSol);
-    let numMintTokens = new anchor.BN(500);       // whitelist size = 500
+    let numMintTokens = new anchor.BN(555);       // whitelist size = 500
 
     let goLiveDate = new anchor.BN((Date.now() + (1000 * 60 * 60 * 24) / 1000));   // tomorrow
     console.log("setting go live date to: ", goLiveDate);
@@ -122,7 +122,7 @@ describe('doorman', () => {
     // add another batch of tokens
     tx = await program.rpc.addMintTokens(numMintTokens, {
       accounts: {
-
+        config: configAccount.publicKey,
         authority: provider.wallet.publicKey,
         mint: mint.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -132,7 +132,6 @@ describe('doorman', () => {
     });
 
     console.log("Added more tokens: ", tx);
-
 
 
     // /* this works, just commenting out for now for testing
@@ -239,7 +238,7 @@ describe('doorman', () => {
     );
 
     // we know our wallet's address is at index 0 cause we reset the counter
-    tx = await program.rpc.purchaseMintToken(0, {
+    tx = await program.rpc.purchaseMintTokenWhitelist(0, {
       accounts: {
         config: configAccount.publicKey,
         whitelist: whitelistData.publicKey,
@@ -271,6 +270,28 @@ describe('doorman', () => {
     // check another purchase - will fail
     try {
       console.log("\n\n >>>>>>>> this mint call should fail since the address at the given index has been used >>>>> \n\n");
+      tx = await program.rpc.purchaseMintTokenWhitelist(0, {
+        accounts: {
+          config: configAccount.publicKey,
+          whitelist: whitelistData.publicKey,
+          mintTokenVault,
+          mintTokenVaultAuthority: mint_token_vault_authority_pda,
+          payer: provider.wallet.publicKey,
+          treasury: treasury.publicKey,
+          systemProgram: SystemProgram.programId,
+          payerMintAccount: payerTokenAccount,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          clock: anchor.web3.SYSVAR_CLOCK_PUBKEY
+        },
+      });
+      assert.fail("shouldn't be able to purchase a mint token anymore")
+    } catch (e) {
+      // expected
+    }
+
+    // check a "public" purchase - should fail
+    try {
+      console.log("\n\n >>>>>>>> this mint call should fail cause doorman is not open to public yet (whitelist only) >>>>> \n\n");
       tx = await program.rpc.purchaseMintToken({
         accounts: {
           config: configAccount.publicKey,
@@ -283,13 +304,58 @@ describe('doorman', () => {
           tokenProgram: TOKEN_PROGRAM_ID,
           clock: anchor.web3.SYSVAR_CLOCK_PUBKEY
         },
-        // signers: [provider],
-        // instructions: await createTokenAccountInstrs(provider, anchor.web3.Keypair.generate().publicKey, mint.publicKey, provider.wallet.publicKey)
       });
       assert.fail("shouldn't be able to purchase a mint token anymore")
     } catch (e) {
       // expected
     }
+
+
+    let balance = await provider.connection.getBalance(provider.wallet.publicKey);
+    console.log("authority sol balance before closing: ", balance / anchor.web3.LAMPORTS_PER_SOL);
+
+    balance = await provider.connection.getBalance(whitelistData.publicKey);
+    console.log("whitelist account sol balance before closing: ", balance / anchor.web3.LAMPORTS_PER_SOL);
+
+    tx = await program.rpc.closeWhitelist({
+      accounts: {
+        config: configAccount.publicKey,
+        authority: provider.wallet.publicKey,
+        whitelist: whitelistData.publicKey,
+      }
+    })
+
+    balance = await provider.connection.getBalance(provider.wallet.publicKey);
+    console.log("authority sol balance after closing whitelist: ", balance / anchor.web3.LAMPORTS_PER_SOL);
+
+    balance = await provider.connection.getBalance(whitelistData.publicKey);
+    console.log("whitelist account sol after closing: ", balance / anchor.web3.LAMPORTS_PER_SOL);
+
+    // whitelist account should be gone
+    try {
+      await program.account.whitelist.fetch(whitelistData.publicKey);
+    } catch (e) {
+      assert.ok(e.toString().includes("Account does not exist"));
+    }
+
+    await displayConfigAccount("config data after closed whitelist (should be whitelistEnabled=false)");
+
+    // now a purchase from anyone should succeed
+    tx = await program.rpc.purchaseMintToken({
+      accounts: {
+        config: configAccount.publicKey,
+        mintTokenVault,
+        mintTokenVaultAuthority: mint_token_vault_authority_pda,
+        payer: provider.wallet.publicKey,
+        treasury: treasury.publicKey,
+        systemProgram: SystemProgram.programId,
+        payerMintAccount: payerTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        clock: anchor.web3.SYSVAR_CLOCK_PUBKEY
+      },
+    });
+
+    console.log("purchaseMintToken transaction signature", tx);
 
 
   });

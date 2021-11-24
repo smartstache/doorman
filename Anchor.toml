@@ -5,8 +5,8 @@ doorman = "D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV"
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "devnet"
-#cluster = "localnet"
+#cluster = "devnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 #wallet = "~/.config/solana/id2.json"
 

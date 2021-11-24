@@ -8,7 +8,8 @@ const {
    getMintTokenVaultAddress,
    provider,
    program,
-   showConfig
+   showConfig,
+   DOORMAN_WHITELIST
 } = require("./config");
 
 
@@ -26,6 +27,9 @@ async function printConfig() {
    let mintTokenVault = await provider.connection.getAccountInfo(mintTokenVaultAddress);
    mintTokenVault.owner = mintTokenVault.owner.toBase58();
    console.log("\n >> mint token vault: ", mintTokenVault);
+
+   let whitelist = await program.account.whitelist.fetch(DOORMAN_WHITELIST);
+   console.log("whitelist: ", whitelist);
 }
 
 printConfig();

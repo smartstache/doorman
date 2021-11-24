@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, TokenAccount, Transfer, SetAuthority};
+use anchor_spl::token::{self, Mint, TokenAccount, Transfer, SetAuthority, Token};
 use spl_token::instruction::AuthorityType;
 use std::ops::DerefMut;
 
@@ -15,7 +15,7 @@ use {
 const PREFIX: &str = "doorman";
 
 // max whitelist size
-const MAX_LEN: usize = 500;
+const MAX_LEN: usize = 555;
 
 
 #[program]
@@ -42,7 +42,8 @@ pub mod doorman {
         config_account.mint = *ctx.accounts.mint.to_account_info().key;
         config_account.mint_token_vault_bump = _mint_token_vault_bump;
         config_account.counter = 0;
-        config_account.whitelist_on = true;
+        config_account.whitelist_enabled = true;
+        config_account.num_tokens = num_tokens;
 
         // first: init the whitelist data account
         let mut whitelist = ctx.accounts.whitelist.load_init()?;
@@ -79,6 +80,9 @@ pub mod doorman {
             ctx.accounts.into_transfer_to_pda_context(),
             num_tokens
         )?;
+
+        let config = &mut ctx.accounts.config;
+        config.num_tokens = ctx.accounts.mint_token_vault.amount + num_tokens;
 
         Ok(())
     }
@@ -174,18 +178,23 @@ pub mod doorman {
             msg!("setting new go live date: {}", date);
             config_account.go_live_date = date;
         }
-        if let Some(whitelist_on) = on {
-            msg!("setting whitelist to: {}", whitelist_on);
-            config_account.whitelist_on = whitelist_on;
+        if let Some(whitelist_enabled) = on {
+            msg!("setting whitelist to: {}", whitelist_enabled);
+            config_account.whitelist_enabled = whitelist_enabled;
         }
         Ok(())
     }
 
+    pub fn close_whitelist(ctx: Context<CloseWhitelist>) -> ProgramResult {
+        let config_account = &mut ctx.accounts.config;
+        config_account.whitelist_enabled = false;
+        Ok(())
+    }
 
     // user sends sol for a mint token
-    pub fn purchase_mint_token(ctx: Context<PurchaseMintToken>, whitelist_address_index: u16) -> ProgramResult {
+    pub fn purchase_mint_token(ctx: Context<PurchaseMintToken>) -> ProgramResult {
 
-        let config = &mut ctx.accounts.config;
+        let config = &ctx.accounts.config;
         let clock = &ctx.accounts.clock;
 
         // check that we're live
@@ -200,7 +209,74 @@ pub mod doorman {
 
         // check we've got enough mint tokens
         if ctx.accounts.mint_token_vault.amount == 0 {
-            return Err(ErrorCode::NotEnoughMintTokens.into());
+            return Err(ErrorCode::SoldOut.into());
+        }
+
+        // make sure the proper treasury was passed in - (redundant now)
+        if ctx.accounts.treasury.key != &config.treasury {
+            return Err(ErrorCode::WrongTreasury.into());
+        }
+
+        // check if we need to check the whitelist
+        if config.whitelist_enabled {
+            return Err(ErrorCode::WhitelistOnly.into());
+        }
+
+        // now on to the actual purchase
+        // this is redundant now since it's checked in the attribute
+        if *ctx.accounts.mint_token_vault.to_account_info().key != config.mint_token_vault  {
+            return Err(ErrorCode::WrongTokenVault.into());
+        }
+
+        // transfer sol to treasury
+        invoke(
+            &system_instruction::transfer(
+                ctx.accounts.payer.key,
+                &config.treasury,
+                config.cost_in_lamports,
+            ),
+            &[
+                ctx.accounts.payer.to_account_info().clone(),
+                ctx.accounts.treasury.clone(),
+                ctx.accounts.system_program.to_account_info().clone(),
+            ],
+        )?;
+
+        // transfer a mint token from the vault to the payer
+        let (_mint_token_vault_authority, _mint_token_vault_authority_bump) =
+            Pubkey::find_program_address(&[PREFIX.as_bytes()], ctx.program_id);
+        let authority_seeds = &[PREFIX.as_bytes(), &[_mint_token_vault_authority_bump]];
+
+        token::transfer(
+            ctx.accounts
+                .into_transfer_to_payer_context()
+                .with_signer(&[&authority_seeds[..]]),
+            1,
+        )?;
+
+        Ok(())
+    }
+
+
+    // user sends sol for a mint token
+    pub fn purchase_mint_token_whitelist(ctx: Context<PurchaseMintTokenWhitelist>, whitelist_address_index: u16) -> ProgramResult {
+
+        let config = &ctx.accounts.config;
+        let clock = &ctx.accounts.clock;
+
+        // check that we're live
+        if clock.unix_timestamp < config.go_live_date {
+            return Err(ErrorCode::DoormanNotLiveYet.into());
+        }
+
+        // check that the payer can pay for this
+        if ctx.accounts.payer.lamports() < config.cost_in_lamports {
+            return Err(ErrorCode::NotEnoughSOL.into());
+        }
+
+        // check we've got enough mint tokens
+        if ctx.accounts.mint_token_vault.amount == 0 {
+            return Err(ErrorCode::SoldOut.into());
         }
 
         // make sure the proper treasury was passed in - move to the attribute/annotation
@@ -209,7 +285,7 @@ pub mod doorman {
         }
 
         // check if we need to check the whitelist
-        if config.whitelist_on {
+        if config.whitelist_enabled {
 
             // make sure proper whitelist was passed in
             if !config.whitelist.eq(&ctx.accounts.whitelist.key()) {
@@ -239,6 +315,7 @@ pub mod doorman {
         }
 
         // now on to the actual purchase
+        // this is redundant now since it's checked in the attribute
         if *ctx.accounts.mint_token_vault.to_account_info().key != config.mint_token_vault  {
             return Err(ErrorCode::WrongTokenVault.into());
         }
@@ -251,9 +328,9 @@ pub mod doorman {
                 config.cost_in_lamports,
             ),
             &[
-                ctx.accounts.payer.clone(),
+                ctx.accounts.payer.to_account_info().clone(),
                 ctx.accounts.treasury.clone(),
-                ctx.accounts.system_program.clone(),
+                ctx.accounts.system_program.to_account_info().clone(),
             ],
         )?;
 
@@ -277,29 +354,31 @@ pub mod doorman {
 #[instruction(mint_token_vault_bump: u8)]
 pub struct Initialize<'info> {
     #[account(
-    init,
-    payer = authority,
+        init,
+        payer = authority,
     )]
     config: ProgramAccount<'info, Config>,
-    #[account(mut, signer)]
-    authority: AccountInfo<'info>,
+    authority: Signer<'info>,
+    // #[account(mut, signer)]
+    // authority: AccountInfo<'info>,
     #[account(zero)]
     whitelist: AccountLoader<'info, Whitelist>,
     treasury: AccountInfo<'info>,
     mint: Account<'info, Mint>,                                      // mint for the token used to hit the candy machine
     system_program: Program<'info, System>,
     rent: Sysvar<'info, Rent>,
-    #[account(executable, "token_program.key == &token::ID")]
-    token_program: AccountInfo<'info>,
+    // #[account(executable, "token_program.key == &token::ID")]
+    // token_program: AccountInfo<'info>,
+    token_program: Program<'info, Token>,
     #[account(mut, "authority_mint_account.owner == *authority.key")]
     authority_mint_account: Account<'info, TokenAccount>,
     #[account(
-    init,
-    seeds = [PREFIX.as_bytes(), mint.key().as_ref()],
-    bump = mint_token_vault_bump,
-    payer = authority,
-    token::mint = mint,
-    token::authority = authority
+        init,
+        seeds = [PREFIX.as_bytes(), mint.key().as_ref()],
+        bump = mint_token_vault_bump,
+        payer = authority,
+        token::mint = mint,
+        token::authority = authority
     )]
     mint_token_vault: Account<'info, TokenAccount>,
 }
@@ -310,17 +389,17 @@ impl<'info> Initialize<'info> {
         let cpi_accounts = Transfer {
             from: self.authority_mint_account.to_account_info().clone(),
             to: self.mint_token_vault.to_account_info().clone(),
-            authority: self.authority.clone(),
+            authority: self.authority.to_account_info().clone(),
         };
-        CpiContext::new(self.token_program.clone(), cpi_accounts)
+        CpiContext::new(self.token_program.to_account_info().clone(), cpi_accounts)
     }
 
     fn into_set_authority_context(&self) -> CpiContext<'_, '_, '_, 'info, SetAuthority<'info>> {
         let cpi_accounts = SetAuthority {
             account_or_mint: self.mint_token_vault.to_account_info().clone(),
-            current_authority: self.authority.clone(),
+            current_authority: self.authority.to_account_info().clone(),
         };
-        CpiContext::new(self.token_program.clone(), cpi_accounts)
+        CpiContext::new(self.token_program.to_account_info().clone(), cpi_accounts)
     }
 }
 
@@ -328,8 +407,14 @@ impl<'info> Initialize<'info> {
 #[derive(Accounts)]
 #[instruction(mint_token_vault_bump: u8)]
 pub struct AddMintTokens<'info> {
-    #[account(mut, signer)]
-    authority: AccountInfo<'info>,
+
+    #[account(mut, has_one = authority)]
+    config: ProgramAccount<'info, Config>,
+
+    // #[account(mut, signer)]
+    // authority: AccountInfo<'info>,
+    authority: Signer<'info>,
+
     mint: Account<'info, Mint>,                                      // mint for the token used to hit the candy machine
     // system_program: Program<'info, System>,
 
@@ -350,7 +435,7 @@ impl<'info> AddMintTokens<'info> {
         let cpi_accounts = Transfer {
             from: self.authority_mint_account.to_account_info().clone(),
             to: self.mint_token_vault.to_account_info().clone(),
-            authority: self.authority.clone(),
+            authority: self.authority.to_account_info().clone(),
         };
         CpiContext::new(self.token_program.clone(), cpi_accounts)
     }
@@ -359,7 +444,7 @@ impl<'info> AddMintTokens<'info> {
 
 #[derive(Accounts)]
 pub struct AddWhitelistAddresses<'info> {
-    #[account(mut, has_one = authority)]
+    #[account(mut, has_one = authority, has_one = whitelist)]
     config: ProgramAccount<'info, Config>,
     #[account(mut)]
     whitelist: AccountLoader<'info, Whitelist>,
@@ -375,7 +460,7 @@ pub struct ResetWhitelistCounter<'info> {
 
 #[account(zero_copy)]
 pub struct Whitelist {
-    addresses: [Pubkey; 500],        // note: this has to be set to a literal like this. can't be set to MAX_LEN constant
+    addresses: [Pubkey; 555],        // note: this has to be set to a literal like this. can't be set to MAX_LEN constant
 }
 
 #[derive(Accounts)]
@@ -385,17 +470,31 @@ pub struct UpdateConfig<'info> {
     authority: Signer<'info>,
 }
 
-#[derive(Accounts)]
-pub struct PurchaseMintToken<'info> {
+// disable whitelist, close the account and send the rent to authority
 
-    #[account(mut)]
+#[derive(Accounts)]
+pub struct CloseWhitelist<'info> {
+    #[account(mut, has_one = authority, has_one = whitelist)]
     config: ProgramAccount<'info, Config>,
-    #[account(mut, signer)]
-    payer: AccountInfo<'info>,
+    authority: Signer<'info>,
+    #[account(mut, close = authority)]
+    whitelist: AccountLoader<'info, Whitelist>,
+}
+
+#[derive(Accounts)]
+pub struct PurchaseMintTokenWhitelist<'info> {
+
+    #[account(mut, has_one = mint_token_vault, has_one = treasury, has_one = whitelist)]
+    config: ProgramAccount<'info, Config>,
+    payer: Signer<'info>,
+
+    // #[account(mut, signer)]
+    // payer: AccountInfo<'info>,
     #[account(mut)]
     whitelist: AccountLoader<'info, Whitelist>,
-    #[account(address = system_program::ID)]
-    system_program: AccountInfo<'info>,
+    // #[account(address = system_program::ID)]
+    // system_program: AccountInfo<'info>,
+    system_program: Program<'info, System>,
     #[account(mut)]
     treasury: AccountInfo<'info>,
     #[account(mut)]
@@ -406,8 +505,42 @@ pub struct PurchaseMintToken<'info> {
     #[account(mut, "payer_mint_account.owner == *payer.key")]
     payer_mint_account: Account<'info, TokenAccount>,
 
-    #[account(executable, "token_program.key == &token::ID")]
-    token_program: AccountInfo<'info>,
+    // #[account(executable, "token_program.key == &token::ID")]
+    // token_program: AccountInfo<'info>,
+    token_program: Program<'info, Token>
+}
+
+impl<'info> PurchaseMintTokenWhitelist<'info> {
+
+    fn into_transfer_to_payer_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_accounts = Transfer {
+            from: self.mint_token_vault.to_account_info().clone(),
+            to: self.payer_mint_account.to_account_info().clone(),
+            authority: self.mint_token_vault_authority.clone(),
+        };
+        CpiContext::new(self.token_program.to_account_info().clone(), cpi_accounts)
+    }
+
+}
+
+#[derive(Accounts)]
+pub struct PurchaseMintToken<'info> {
+
+    #[account(mut, has_one = treasury, has_one = mint_token_vault)]
+    config: ProgramAccount<'info, Config>,
+    payer: Signer<'info>,
+    system_program: Program<'info, System>,
+    #[account(mut)]
+    treasury: AccountInfo<'info>,
+    #[account(mut)]
+    mint_token_vault: Account<'info, TokenAccount>,
+    mint_token_vault_authority: AccountInfo<'info>,
+    clock: Sysvar<'info, Clock>,
+
+    #[account(mut, "payer_mint_account.owner == *payer.key")]
+    payer_mint_account: Account<'info, TokenAccount>,
+
+    token_program: Program<'info, Token>
 }
 
 impl<'info> PurchaseMintToken<'info> {
@@ -418,15 +551,15 @@ impl<'info> PurchaseMintToken<'info> {
             to: self.payer_mint_account.to_account_info().clone(),
             authority: self.mint_token_vault_authority.clone(),
         };
-        CpiContext::new(self.token_program.clone(), cpi_accounts)
+        CpiContext::new(self.token_program.to_account_info().clone(), cpi_accounts)
     }
-
 }
+
 
 #[account]
 #[derive(Default)]
 pub struct Config {
-    whitelist_on: bool,
+    whitelist_enabled: bool,
     cost_in_lamports: u64,            // the cost for a mint token
     go_live_date: i64,
     authority: Pubkey,
@@ -436,6 +569,7 @@ pub struct Config {
     mint_token_vault: Pubkey,
     mint_token_vault_bump: u8,
     counter: u16,                       // keep track of list size
+    num_tokens: u64                     // number of mint tokens in the vault
 }
 
 #[error]
@@ -446,8 +580,8 @@ pub enum ErrorCode {
     WrongTreasury,
     #[msg("Wrong token vault")]
     WrongTokenVault,
-    #[msg("No mint tokens left")]
-    NotEnoughMintTokens,
+    #[msg("Sold out")]
+    SoldOut,
     #[msg("Doorman not live yet")]
     DoormanNotLiveYet,
     #[msg("Not enough space left in whitelist!")]
@@ -457,7 +591,9 @@ pub enum ErrorCode {
     #[msg("Whitelist address index out of range")]
     WhitelistAddressIndexOutOfRange,
     #[msg("Whitelisted address not found at given index")]
-    WhitelistAddressNotFound
+    WhitelistAddressNotFound,
+    #[msg("Whitelisted addresses only")]
+    WhitelistOnly
 
 }
 

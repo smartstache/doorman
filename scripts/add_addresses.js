@@ -48,6 +48,9 @@ async function addAddresses() {
          }
       }
 
+      console.log("doorman config: ", DOORMAN_CONFIG.toString());
+      console.log("whitelist: ", DOORMAN_WHITELIST.toString());
+
       // add this chunk of addresses
       tx = await program.rpc.addWhitelistAddresses(addressesToAdd, {
          accounts: {
