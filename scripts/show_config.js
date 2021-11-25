@@ -15,13 +15,13 @@ const {
 
 async function printConfig() {
 
-   await showConfig();
+   let config = await showConfig();
 
    let mint = await provider.connection.getAccountInfo(MINT);
    mint.owner = mint.owner.toBase58();
    console.log("\n >> mint account: ", mint);
 
-   let mintTokenVaultAddress = await getMintTokenVaultAddress();
+   let mintTokenVaultAddress = config.mintTokenVault;
    console.log(">> mint token vault address: ", mintTokenVaultAddress.toBase58());
 
    let mintTokenVault = await provider.connection.getAccountInfo(mintTokenVaultAddress);

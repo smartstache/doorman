@@ -60,14 +60,14 @@ Here's the full list of steps to set up a candy machine + doorman on devnet.
 - now go through steps to set up your candy machine, making sure to specify the mint + spl token account that you just created, when executing the create_candy_machine command
   - save the candy machine id (this is what the create_candy_machine command spits out; the candy machine pubkey)
   - save the candy machine config address (this can be found in the .cache/devnet-temp file that gets created; it's the "config" pubkey)
+  - alternatively, use the candy machine "show" command to see all the config information you'll need
 - go into doorman, and update the following fields in .env with the ones you just saved above:
-    - REACT_APP_CANDYMACHINE_CONFIG == the 'config' key from the candy machine config file
     - REACT_APP_CANDYMACHINE_ID == the candy machine public key you got when executing the create_candy_machine command (also found as the candyMachineAddress in the candy machine config file)
     - REACT_APP_MINT == the mint you created
-    - CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT == the token account that was created, containing a bunch of minting coins
-    - REACT_APP_CANDYMACHINE_TREASURY == the token account you created (or a different one), this is where the CM will store the tokens that are used to purchase an NFT
+    - DOORMAN_INITIALIZOR_TOKEN_ACCOUNT == the token account that was created, containing a bunch of minting coins
 - get ready to initialize your doorman
   - make sure you've checked Anchor.toml so that you're using the appropriate cluster + authority/keypair you used when setting up the candy machine
+  - verify settings at the top of initialize.js
   - set the REACT_APP_DOORMAN_TREASURY in .env to the wallet that will contain the SOL when whitelisted users purchase their mint token
 - now initialize doorman: ```anchor run initialize```
   - save the config account to use and enter it into .env as REACT_APP_DOORMAN_CONFIG

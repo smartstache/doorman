@@ -34,8 +34,6 @@ export const TOKEN_METADATA_PROGRAM = new anchor.web3.PublicKey(process.env.REAC
 // candy machine config
 export const CANDYMACHINE_ID = new anchor.web3.PublicKey(process.env.REACT_APP_CANDYMACHINE_ID);
 export const CANDYMACHINE_PROGRAM = new anchor.web3.PublicKey(process.env.REACT_APP_CANDYMACHINE_PROGRAM);
-export const CANDYMACHINE_TREASURY = new anchor.web3.PublicKey(process.env.REACT_APP_CANDYMACHINE_TREASURY);
-export const CANDYMACHINE_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_CANDYMACHINE_CONFIG);
 
 // doorman config
 export const DOORMAN_CONFIG = new anchor.web3.PublicKey(process.env.REACT_APP_DOORMAN_CONFIG);

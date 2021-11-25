@@ -4,7 +4,7 @@ const {
    program,
    MINT,
    DOORMAN_TREASURY,
-   CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT
+   DOORMAN_INITIALIZOR_TOKEN_ACCOUNT
 } = require("./config");
 
 const anchor = require('@project-serum/anchor');
@@ -23,9 +23,13 @@ const {
 // set this to false to use the mint given in .env
 const CREATE_NEW_MINT = false;
 const CREATE_NEW_TREASURY = false;
-const COST_IN_SOL = 0.5;
-const NUM_MINT_TOKENS = 300;        // whitelist size. note: 300 is about the current limit for now (see rust program for why)
+const COST_IN_SOL = 0.25;
+const NUM_MINT_TOKENS = 1111;                // number of mint tokens to give doorman to put in the vault
 const GO_LIVE_DATE = new Date() / 1000;      // now
+const WHITELIST_SIZE = 555;                  // current max size = 555. this is used to determine how big the whitelist account needs to be
+
+// if setting up multiple doormen, increment the nonce here
+const nonce = "nonce-1";
 
 /////// ----- CONFIG ----- ///////
 
@@ -61,12 +65,13 @@ async function performInit() {
       mintKey = mint.publicKey;
    } else {
       mintKey = MINT;
-      initializorMintTokenAccount = CANDYMACHINE_INITIALIZOR_TOKEN_ACCOUNT;
+      initializorMintTokenAccount = DOORMAN_INITIALIZOR_TOKEN_ACCOUNT;
    }
 
-   const [mintTokenVault, mintTokenVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-      [utf8.encode(DOORMAN_SEED), mintKey.toBuffer()],
-      program.programId
+   let mintTokenVault = await createTokenAccount(
+      provider,
+      mintKey,
+      provider.wallet.publicKey
    );
 
    let treasuryKey = null;
@@ -83,9 +88,12 @@ async function performInit() {
    let numMintTokens = new anchor.BN(NUM_MINT_TOKENS);
    let goLiveDate = new anchor.BN(GO_LIVE_DATE);               // now
 
-   const whitelistAccountSize = 8 + (32 * 500);  // up to 500 addresses
+   const whitelistAccountSize = 8 + (32 * WHITELIST_SIZE);
 
-   let tx = await program.rpc.initialize(mintTokenVaultBump, numMintTokens, costInLamports, goLiveDate, {
+   console.log("mint: ", mintKey.toString());
+   console.log("authorityMintAccount: ", initializorMintTokenAccount.toString());
+
+   let tx = await program.rpc.initialize(numMintTokens, costInLamports, goLiveDate, {
       accounts: {
          whitelist: whitelistData.publicKey,
          config: configAccount.publicKey,

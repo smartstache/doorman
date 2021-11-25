@@ -16,6 +16,7 @@ const {
 
 
 const DOORMAN_SEED = "doorman";
+
 const provider = anchor.Provider.env();
 anchor.setProvider(provider);
 const program = anchor.workspace.Doorman;
@@ -74,10 +75,13 @@ describe('doorman', () => {
        10000,
     );
 
-    const [mintTokenVault, mintTokenVaultBump] = await anchor.web3.PublicKey.findProgramAddress(
-       [utf8.encode(DOORMAN_SEED), mint.publicKey.toBuffer()],
-       program.programId
+    let mintTokenVault = await createTokenAccount(
+       provider,
+       mint.publicKey,
+       provider.wallet.publicKey
     );
+
+    console.log("mint token vault: ", mintTokenVault.toString());
 
     const treasury = anchor.web3.Keypair.generate();
 
@@ -88,7 +92,7 @@ describe('doorman', () => {
     let goLiveDate = new anchor.BN((Date.now() + (1000 * 60 * 60 * 24) / 1000));   // tomorrow
     console.log("setting go live date to: ", goLiveDate);
 
-    let tx = await program.rpc.initialize(mintTokenVaultBump, numMintTokens, costInLamports, goLiveDate, {
+    let tx = await program.rpc.initialize(numMintTokens, costInLamports, goLiveDate, {
       accounts: {
         whitelist: whitelistData.publicKey,
         config: configAccount.publicKey,

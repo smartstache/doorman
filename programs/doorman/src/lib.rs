@@ -28,7 +28,6 @@ pub mod doorman {
     };
 
     pub fn initialize(ctx: Context<Initialize>,
-                      _mint_token_vault_bump: u8,                           // for whatever reason the bump needed to be first, otherwise it complains about seed
                       num_tokens: u64,
                       cost_in_lamports: u64,
                       go_live_date: i64) -> ProgramResult {
@@ -40,7 +39,6 @@ pub mod doorman {
         config_account.whitelist = ctx.accounts.whitelist.key();
         config_account.go_live_date = go_live_date;
         config_account.mint = *ctx.accounts.mint.to_account_info().key;
-        config_account.mint_token_vault_bump = _mint_token_vault_bump;
         config_account.counter = 0;
         config_account.whitelist_enabled = true;
         config_account.num_tokens = num_tokens;
@@ -123,51 +121,10 @@ pub mod doorman {
         Ok(())
     }
 
-    /*
-    pub fn initialize(ctx: Context<Initialize>,
-                      _mint_token_vault_bump: u8,                           // for whatever reason the bump needed to be first, otherwise it complains about seed
-                      num_tokens: u64,
-                      cost_in_lamports: u64,
-                      go_live_date: i64) -> ProgramResult {
-
-        let config_account = &mut ctx.accounts.config;
-        config_account.treasury = *ctx.accounts.treasury.key;
-        config_account.cost_in_lamports = cost_in_lamports;
-        config_account.mint_token_vault = *ctx.accounts.mint_token_vault.to_account_info().key;
-        config_account.authority = *ctx.accounts.authority.key;
-        config_account.go_live_date = go_live_date;
-        config_account.mint = *ctx.accounts.mint.to_account_info().key;
-        config_account.mint_token_vault_bump = _mint_token_vault_bump;
-
-        msg!("token account owner: {}", ctx.accounts.mint_token_vault.owner);
-
-        // set pda authority
-        let (mint_token_vault_authority, _mint_token_vault_authority_bump) =
-            Pubkey::find_program_address(&[PREFIX.as_bytes()], ctx.program_id);
-
-        token::set_authority(
-            ctx.accounts.into_set_authority_context(),
-            AuthorityType::AccountOwner,
-            Some(mint_token_vault_authority),
-        )?;
-
-        msg!("mint token vault owner: {}", ctx.accounts.mint_token_vault.owner);
-
-        // Transfer mint token from user to vault
-        token::transfer(
-            ctx.accounts.into_transfer_to_pda_context(),
-            num_tokens
-        )?;
-
-        Ok(())
-    }
-
-     */
-
     pub fn update_config(ctx: Context<UpdateConfig>,
                          cost_in_lamports: Option<u64>,
                          go_live_date: Option<i64>,
-                         on: Option<bool>) -> ProgramResult {
+                         enable_whitelist: Option<bool>) -> ProgramResult {
         let config_account = &mut ctx.accounts.config;
 
         if let Some(price) = cost_in_lamports {
@@ -178,7 +135,7 @@ pub mod doorman {
             msg!("setting new go live date: {}", date);
             config_account.go_live_date = date;
         }
-        if let Some(whitelist_enabled) = on {
+        if let Some(whitelist_enabled) = enable_whitelist {
             msg!("setting whitelist to: {}", whitelist_enabled);
             config_account.whitelist_enabled = whitelist_enabled;
         }
@@ -242,7 +199,6 @@ pub mod doorman {
             ],
         )?;
 
-        // transfer a mint token from the vault to the payer
         let (_mint_token_vault_authority, _mint_token_vault_authority_bump) =
             Pubkey::find_program_address(&[PREFIX.as_bytes()], ctx.program_id);
         let authority_seeds = &[PREFIX.as_bytes(), &[_mint_token_vault_authority_bump]];
@@ -334,7 +290,7 @@ pub mod doorman {
             ],
         )?;
 
-        // transfer a mint token from the vault to the payer
+        // set pda authority
         let (_mint_token_vault_authority, _mint_token_vault_authority_bump) =
             Pubkey::find_program_address(&[PREFIX.as_bytes()], ctx.program_id);
         let authority_seeds = &[PREFIX.as_bytes(), &[_mint_token_vault_authority_bump]];
@@ -351,7 +307,7 @@ pub mod doorman {
 }
 
 #[derive(Accounts)]
-#[instruction(mint_token_vault_bump: u8)]
+#[instruction(num_tokens: u64)]
 pub struct Initialize<'info> {
     #[account(
         init,
@@ -367,18 +323,12 @@ pub struct Initialize<'info> {
     mint: Account<'info, Mint>,                                      // mint for the token used to hit the candy machine
     system_program: Program<'info, System>,
     rent: Sysvar<'info, Rent>,
-    // #[account(executable, "token_program.key == &token::ID")]
-    // token_program: AccountInfo<'info>,
     token_program: Program<'info, Token>,
     #[account(mut, "authority_mint_account.owner == *authority.key")]
     authority_mint_account: Account<'info, TokenAccount>,
     #[account(
-        init,
-        seeds = [PREFIX.as_bytes(), mint.key().as_ref()],
-        bump = mint_token_vault_bump,
-        payer = authority,
-        token::mint = mint,
-        token::authority = authority
+        mut,
+        constraint = authority_mint_account.amount >= num_tokens
     )]
     mint_token_vault: Account<'info, TokenAccount>,
 }
@@ -405,7 +355,6 @@ impl<'info> Initialize<'info> {
 
 
 #[derive(Accounts)]
-#[instruction(mint_token_vault_bump: u8)]
 pub struct AddMintTokens<'info> {
 
     #[account(mut, has_one = authority)]
@@ -499,6 +448,7 @@ pub struct PurchaseMintTokenWhitelist<'info> {
     treasury: AccountInfo<'info>,
     #[account(mut)]
     mint_token_vault: Account<'info, TokenAccount>,
+
     mint_token_vault_authority: AccountInfo<'info>,
     clock: Sysvar<'info, Clock>,
 
@@ -567,7 +517,6 @@ pub struct Config {
     treasury: Pubkey,                   // the account to send the sol to
     mint: Pubkey,
     mint_token_vault: Pubkey,
-    mint_token_vault_bump: u8,
     counter: u16,                       // keep track of list size
     num_tokens: u64                     // number of mint tokens in the vault
 }

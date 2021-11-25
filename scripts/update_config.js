@@ -11,11 +11,11 @@ const {
 async function updateConfig() {
 
    let costInSol = 0.002;
-   let goLiveDate = (Date.now() - 55555500000) / 1000;                                  // in the past
+   let goLiveDate = (Date.now() + 55555500000) / 1000;                                  // in the future
    let costInLamports = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * costInSol);
-   let whitelistEnabled = false;
+   let enableWhitelist = false;
 
-   let tx = await program.rpc.updateConfig(costInLamports, new anchor.BN(goLiveDate), whitelistEnabled, {
+   let tx = await program.rpc.updateConfig(costInLamports, new anchor.BN(goLiveDate), enableWhitelist, {
       accounts: {
          config: DOORMAN_CONFIG,
          authority: provider.wallet.publicKey,
