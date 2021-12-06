@@ -15,7 +15,7 @@ use {
 const PREFIX: &str = "doorman";
 
 // max whitelist size
-const MAX_LEN: usize = 555;
+const MAX_LEN: usize = 1111;
 
 
 #[program]
@@ -409,7 +409,7 @@ pub struct ResetWhitelistCounter<'info> {
 
 #[account(zero_copy)]
 pub struct Whitelist {
-    addresses: [Pubkey; 555],        // note: this has to be set to a literal like this. can't be set to MAX_LEN constant
+    addresses: [Pubkey; 1111],        // note: this has to be set to a literal like this. can't be set to MAX_LEN constant
 }
 
 #[derive(Accounts)]
