@@ -26,7 +26,7 @@ const fs = require("fs");
 
 // const {createTokenAccountInstrs} = require("@project-serum/common");
 
-const BIG_WHITELIST_LEN = 555;
+const BIG_WHITELIST_LEN = 1111;
 const DATETIME_FORMAT = new Intl.DateTimeFormat('en-GB', { dateStyle: 'full', timeStyle: 'long'});
 
 describe('doorman', () => {
@@ -87,7 +87,7 @@ describe('doorman', () => {
 
     let costInSol = 5;
     let costInLamports = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * costInSol);
-    let numMintTokens = new anchor.BN(555);       // whitelist size = 500
+    let numMintTokens = new anchor.BN(555);
 
     let goLiveDate = new anchor.BN((Date.now() + (1000 * 60 * 60 * 24) / 1000));   // tomorrow
     console.log("setting go live date to: ", goLiveDate);

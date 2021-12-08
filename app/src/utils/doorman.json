@@ -12,7 +12,7 @@
         },
         {
           "name": "authority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": true
         },
         {
@@ -58,10 +58,6 @@
       ],
       "args": [
         {
-          "name": "mintTokenVaultBump",
-          "type": "u8"
-        },
-        {
           "name": "numTokens",
           "type": "u64"
         },
@@ -79,8 +75,13 @@
       "name": "addMintTokens",
       "accounts": [
         {
-          "name": "authority",
+          "name": "config",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
           "isSigner": true
         },
         {
@@ -183,12 +184,33 @@
           }
         },
         {
-          "name": "on",
+          "name": "enableWhitelist",
           "type": {
             "option": "bool"
           }
         }
       ]
+    },
+    {
+      "name": "closeWhitelist",
+      "accounts": [
+        {
+          "name": "config",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "whitelist",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
       "name": "purchaseMintToken",
@@ -200,7 +222,58 @@
         },
         {
           "name": "payer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasury",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintTokenVaultAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payerMintAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "purchaseMintTokenWhitelist",
+      "accounts": [
+        {
+          "name": "config",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": false,
           "isSigner": true
         },
         {
@@ -263,7 +336,7 @@
             "type": {
               "array": [
                 "publicKey",
-                500
+                1111
               ]
             }
           }
@@ -276,7 +349,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "whitelistOn",
+            "name": "whitelistEnabled",
             "type": "bool"
           },
           {
@@ -308,12 +381,12 @@
             "type": "publicKey"
           },
           {
-            "name": "mintTokenVaultBump",
-            "type": "u8"
-          },
-          {
             "name": "counter",
             "type": "u16"
+          },
+          {
+            "name": "numTokens",
+            "type": "u64"
           }
         ]
       }
@@ -337,8 +410,8 @@
     },
     {
       "code": 303,
-      "name": "NotEnoughMintTokens",
-      "msg": "No mint tokens left"
+      "name": "SoldOut",
+      "msg": "Sold out"
     },
     {
       "code": 304,
@@ -364,6 +437,11 @@
       "code": 308,
       "name": "WhitelistAddressNotFound",
       "msg": "Whitelisted address not found at given index"
+    },
+    {
+      "code": 309,
+      "name": "WhitelistOnly",
+      "msg": "Whitelisted addresses only"
     }
   ],
   "metadata": {
