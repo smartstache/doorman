@@ -4,6 +4,9 @@ doorman = "D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV"
 [programs.localnet]
 doorman = "D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV"
 
+[programs.mainnet]
+doorman = "D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV"
+
 [registry]
 url = "https://anchor.projectserum.com"
 

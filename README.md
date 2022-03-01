@@ -1,8 +1,9 @@
 ### Overview
 
-Doorman is a Solana program created to enable a whitelist of allowed address access to a candy machine.
+Doorman is a Solana program created to enable a whitelist of allowed address access to a candy machine. It's a simple
+mechanism to accept payment for custom SPL token, and can be used standalone for that purpose. But the steps to set it up 
+as a whitelist mechanism for a candy machine are: 
 
-It works as follows:
 - create a new mint
 - set up a separate candy machine for the whitelist, which is configured to accept the new mint token instead of SOL
 - set up a doorman with a vault containing the mint tokens
@@ -13,8 +14,12 @@ It works as follows:
 
 ### Status
 
-This project is currently just a proof of concept. It's not even alpha and certainly not deployed anywhere yet. 
-Use at your own risk.
+Doorman was deployed to production and resides at D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV 
+(https://solscan.io/account/D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV). The code has been audited and used in production,
+though the audits haven't been rigorous. The deployed version is capable of supporting a whitelist size up to 1111 entries
+long. One thing to note is that the deployed version is not currently reflected in the master branch. It was deployed
+from a separate branch, which I haven't had time to properly merge back into master yet. If you're interested in using 
+Doorman, just reach out and I can help you out. 
 
 Apologies if this documentation is incomplete. Reach out to me on Twitter if you have any questions, comments, suggestions, etc: @silostack
 
