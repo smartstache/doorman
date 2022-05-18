@@ -13,8 +13,9 @@ It works as follows:
 
 ### Status
 
-This project is currently just a proof of concept. It's not even alpha and certainly not deployed anywhere yet. 
-Use at your own risk.
+This project has been used in production but has not undergone extensive auditing, so use at your own risk. 
+
+It's available on mainnet here: D8bTW1sgKaSki1TBUwxarPySLp3TNVgB2bwRVbbTLYeV
 
 Apologies if this documentation is incomplete. Reach out to me on Twitter if you have any questions, comments, suggestions, etc: @silostack
 
