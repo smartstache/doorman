@@ -11,6 +11,7 @@ const {
    showConfig,
    DOORMAN_WHITELIST
 } = require("./config");
+const {PublicKey} = require("@solana/web3.js");
 
 
 async function printConfig() {
@@ -26,10 +27,22 @@ async function printConfig() {
 
    let mintTokenVault = await provider.connection.getAccountInfo(mintTokenVaultAddress);
    mintTokenVault.owner = mintTokenVault.owner.toBase58();
-   console.log("\n >> mint token vault: ", mintTokenVault);
+   console.log("\n >> mint token vault: ", mintTokenVault.to);
 
    let whitelist = await program.account.whitelist.fetch(DOORMAN_WHITELIST);
-   console.log("whitelist: ", whitelist);
+   let addresses = whitelist.addresses;
+   let formatted = [];
+   for (let address of addresses) {
+      formatted.push(address.toBase58());
+   }
+   let num = 0;
+   for (let addy of addresses) {
+      if (!addy.equals(PublicKey.default)) {
+         console.log(num + ": " + addy.toBase58());
+      }
+      num++;
+   }
+
 }
 
 printConfig();

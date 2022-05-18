@@ -41,6 +41,8 @@ async function showConfig() {
    accountData.treasury = accountData.treasury.toString();
    accountData.mintTokenVaultAddress = accountData.mintTokenVault.toString();
    accountData.goLiveDate = new Date(accountData.goLiveDate.toNumber() * 1000);
+   accountData.mintPublicKey = accountData.mint;
+   accountData.whitelistAddress = accountData.whitelist.toBase58();
    accountData.mint = accountData.mint.toBase58();
    console.log("\n >> config account data: ", accountData);
    return accountData;

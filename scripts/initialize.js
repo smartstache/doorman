@@ -1,5 +1,4 @@
 const {
-   DOORMAN_SEED,
    provider,
    program,
    MINT,
@@ -23,9 +22,9 @@ const {
 // set this to false to use the mint given in .env
 const CREATE_NEW_MINT = false;
 const CREATE_NEW_TREASURY = false;
-const COST_IN_SOL = 0.001;
-const NUM_MINT_TOKENS = 10;                // number of mint tokens to give doorman to put in the vault
-const GO_LIVE_DATE = (new Date() - 5000000) / 1000;      // in the past
+const COST_IN_SOL = 0.1;
+const NUM_MINT_TOKENS = 5000;                // number of mint tokens to give doorman to put in the vault
+const GO_LIVE_DATE = new Date('December 12, 2021 15:00:00') / 1000;
 const WHITELIST_SIZE = 1111;                  // current max size = 1111. this is used to determine how big the whitelist account needs to be
 
 /////// ----- CONFIG ----- ///////
